@@ -48,6 +48,10 @@ const weapon = new Schema(
       type: Boolean,
       default: false,
     },
+    'isSouvenir': {
+      type: Boolean,
+      default: false,
+    },
     _id: Number
   },
   { _id: false, versionKey: false }
