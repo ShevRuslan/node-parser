@@ -5,12 +5,14 @@ const config = require('../config/');
 module.exports = class {
 
   getInfo = async (request, response) => {
+    const array = []
     const domens = config.domens;
     let res = null;
     for await (let domen of domens) {
       res = await this.requestWeapon(domen);
+      array.push(res);
     }
-    response.status(200).json({'status': res});
+    response.status(200).json({'status': array});
   }; 
   requestWeapon = async (domen) => {
     let arrayPages = [];
@@ -89,5 +91,25 @@ module.exports = class {
       currentLink++;
     }
     return arrayPages;
+  }
+  getStattrackWeapon = async (request, response) => {
+    const items = await Weapon.find({ isStatTrak: true });
+    response.status(200).json({'items': items});
+  }
+  getSouvenirWeapon = async (request, response) => {
+    const items = await Weapon.find({ isSouvenir: true });
+    response.status(200).json({'items': items});
+  }
+  getWeapon = async (request, response) => {
+    const items = await Weapon.find({ isStatTrak: false, isSouvenir: false, type: 'weapon' });
+    response.status(200).json({'items': items});
+  }
+  getKnife = async (request, response) => {
+    const items = await Weapon.find({ type: 'knife' });
+    response.status(200).json({ 'items': items });
+  }
+  getGloves = async (request, response) => {
+    const items = await Weapon.find({ type: 'gloves' });
+    response.status(200).json({ 'items': items });
   }
 };
