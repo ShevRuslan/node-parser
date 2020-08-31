@@ -101,7 +101,7 @@ module.exports = class {
     response.status(200).json({'items': items});
   }
   getWeapon = async (request, response) => {
-    const items = await Weapon.find({ isStatTrak: false, isSouvenir: false, type: 'weapon' });
+    const items = await Weapon.find({ isStatTrak: false, isSouvenir: false, type: 'weapon' }, null, {sort: {'percentage-market-autobuy': -1}}).limit(100);
     response.status(200).json({'items': items});
   }
   getKnife = async (request, response) => {
@@ -111,5 +111,20 @@ module.exports = class {
   getGloves = async (request, response) => {
     const items = await Weapon.find({ type: 'gloves' });
     response.status(200).json({ 'items': items });
+  }
+  searchByName = async (request, response) => {
+    const name = request.body.name;
+    const items = await Weapon.find({ name: { $regex: name, $options: 'i' } });
+    response.status(200).json({ 'items': items });
+  }
+  searchBetweenPrice = async (request, response) => {
+    const minPrice = request.body.minPrice;
+    const maxPrice = request.body.maxPrice;
+    try {
+      const items = await Weapon.find({ price: { $gte:minPrice, $lte: maxPrice } });
+      response.status(200).json({items: items});
+    } catch (err) {
+      response.status(404).json({ message: err });
+    }
   }
 };
