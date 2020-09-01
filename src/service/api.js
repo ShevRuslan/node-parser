@@ -2,13 +2,14 @@ import axios from 'axios';
 
 class Api {
   //Запрос на апи
-  getResource = async (url, data, method, headers = {}) => {
+  getResource = async (url, body, method, headers = {}, data) => {
     let response = null;
     try {
       response = await axios({
         url:`api/${url}`,
         method: method,
-        body: data,
+        body: body,
+        params: data,
         headers: {
           'Content-Type': 'application/json',
           ...headers
@@ -37,6 +38,10 @@ class Api {
     const response = await this.getResource(url, null, 'GET');
     return response;
   }
-
+  getWeaponByName = async (name) => {
+    let url = 'searchByName';
+    const response = await this.getResource(url, null, 'GET', null, { name: name });
+    return response;
+  }
 }
 export default new Api();

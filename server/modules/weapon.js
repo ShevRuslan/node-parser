@@ -113,8 +113,8 @@ module.exports = class {
     response.status(200).json({ 'items': items });
   }
   searchByName = async (request, response) => {
-    const name = request.body.name;
-    const items = await Weapon.find({ name: { $regex: name, $options: 'i' } });
+    const {name} = request.query;
+    const items = await Weapon.find({ name: { $regex: name, $options: 'i' } }, null, {sort: {'percentage-market-autobuy': -1}}).limit(100);
     response.status(200).json({ 'items': items });
   }
   searchBetweenPrice = async (request, response) => {

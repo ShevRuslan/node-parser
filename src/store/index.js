@@ -17,44 +17,46 @@ Vue.use(Vuex);
 export default function(/* { ssrContext } */) {
   const Store = new Vuex.Store({
     state: {
-      user: {
-        login: '',
-        img: null, 
-        status: '',
+      filter: {
+        type: 'Normal',
+        type_weapon: 'Weapon',
+        minPrice: '',
+        maxPrice: "",
       },
-      chat: {
-        login: '',
-        img: null
-      }
+      items: [],
     },
     getters: {
-      getInfoAboutUser(state) {
-        return state.user;
+      getItems({items}) {
+        return items;
       },
-      getCompanion(state) {
-        return state.chat;
-      },
+      getFilter({filter}) {
+        return filter
+      }
     },
     //sync
     mutations: {
-      addInfoAboutUser(state, payload) {
-        state.user = { ...state.user, ...payload };
+      addItems(state, payload) {
+        state.items = payload;
       },
-      addUser(state, payload) {
-        state.chat = {...state.chat, ...payload};
+      changeType (state, payload) {
+        state.filter.type = payload;
       },
+      changeTypeWeapon (state, payload) {
+        state.filter.type_weapon = payload;
+      },
+      changeMinPrice (state, payload) {
+        state.filter.minPrice = payload;
+      },
+      changeMaxPrice (state, payload) {
+        state.filter.maxPrice = payload;
+      }
     },
     //async
     actions: {
-      addInfoAboutUser({ commit }, user) {
-        commit('addInfoAboutUser', user);
+      addItems({ commit }, items) {
+        commit('addItems', items);
       },
-      addUser({ commit }, user) {
-        commit('addUser', user);
-      }
     },
-    modules: {},
-
     // enable strict mode (adds overhead!)
     // for dev mode only
     strict: process.env.DEV
