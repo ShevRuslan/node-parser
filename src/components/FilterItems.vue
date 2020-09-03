@@ -1,35 +1,43 @@
 <template>
-  <div class="flex q-mb-lg">
-    <q-select
-      outlined
-      v-model="type"
-      :options="options"
-      label="Тип"
-      class="filter-select"
-      dense
-    />
-    <q-select
-      outlined
-      v-model="type_weapon"
-      :options="typeWeapon"
-      label="Тип оружия"
-      class="q-ml-md filter-select"
-      dense
-    />
-    <div class="flex q-ml-lg">
-      <q-input outlined v-model="minPrice" label="От" dense />
-      <q-input outlined v-model="maxPrice" label="До" dense class="q-ml-md" />
+  <div class="flex q-mb-lg filter">
+    <div class="filter-item q-mb-lg">
+      <q-select
+        outlined
+        v-model="type"
+        :options="options"
+        label="Тип"
+        multiple 
+        class="filter-select"
+        dense
+      />
+      <q-select
+        outlined
+        v-model="type_weapon"
+        :options="typeWeapon"
+        label="Тип оружия"
+        multiple
+        class=" filter-select"
+        dense
+      />
+      <q-input outlined v-model="minPrice" label="От" dense class="filter-select" />
+      <q-input outlined v-model="maxPrice" label="До" dense class="filter-select" />
+      <q-btn
+        color="primary"
+        class=" filter-select"
+        dense
+        @click="search"
+      >
+        Поиск
+      </q-btn>
     </div>
-    <q-btn color="primary" class="q-ml-lg filter-select" dense>
-      Поиск
-    </q-btn>
-    <div class="flex q-ml-xl">
+    <div class="flex filter-item q-mb-lg">
       <q-input
         outlined
         v-model="textSearch"
         label="Поиск по названию"
         dense
         @input="searchByName"
+        class="input-search"
       />
     </div>
   </div>
@@ -46,7 +54,6 @@ export default {
     return {
       options: ["StatTrak", "Souvenir", "Normal"],
       typeWeapon: ["Knife", "Gloves", "Weapon"],
-      textSearch: ""
     };
   },
   computed: {
@@ -83,6 +90,22 @@ export default {
       set(value) {
         this.changeMaxPrice(value);
       }
+    },
+    offset: {
+      get() {
+        return this.getFilter.offset;
+      },
+      set(value) {
+        this.changeOffset(value);
+      }
+    },
+    textSearch: {
+      get() {
+        return this.getFilter.textSearch;
+      },
+      set(value) {
+        this.changeTextSearch(value);
+      }
     }
   },
   methods: {
@@ -90,20 +113,71 @@ export default {
       "changeType",
       "changeTypeWeapon",
       "changeMinPrice",
-      "changeMaxPrice"
+      "changeMaxPrice",
+      "changeLoading",
+      'changeOffset',
+      'changeTextSearch',
+      'changeUpdateFilter'
     ]),
-    ...mapActions(["addItems"]),
+    ...mapActions(["addItemsAfterSearch"]),
     async searchByName(value) {
-      const response = await Api.getWeaponByName(value);
+      this.changeOffset(0);
+      const response = await this.request();
       console.log(response.items);
-      this.addItems(response.items);
+      this.addItemsAfterSearch(response.items);
+    },
+    async search() {
+      this.changeOffset(0);
+      this.changeLoading(true);
+      const response = await this.request();
+      this.addItemsAfterSearch(response.items);
+      this.changeLoading(false);
+    },
+    async request() {
+      this.changeUpdateFilter({
+        type: this.type,
+        type_weapon: this.type_weapon,
+        minPrice: this.minPrice,
+        maxPrice: this.maxPrice,
+        offset: this.offset,
+        textSearch: this.textSearch,
+      })
+       const data = {
+        type: JSON.stringify(this.type),
+        type_weapon: JSON.stringify(this.type_weapon),
+        minPrice: this.minPrice,
+        maxPrice: this.maxPrice,
+        offset: this.offset,
+        textSearch: this.textSearch,
+      };
+      const response = await Api.getWeapon(data);
+      return response;
     }
   }
 };
 </script>
 
 <style lang="scss">
-.filter-select {
-  min-width: 200px;
+.filter {
+  width: 100%;
+  justify-content: space-between;
+  flex-direction: column;
+  .filter-item {
+    display: flex;
+    &:first-child {
+      width: 70%;
+    }
+    &:nth-child(2) {
+      width: 30%;
+    }
+    justify-content: space-between;
+    .filter-select {
+      width: 19%;
+    }
+    .input-search {
+      min-width: 250px;
+    }
+  }
+
 }
 </style>

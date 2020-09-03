@@ -44,13 +44,9 @@ const weapon = new Schema(
       type: String,
       required: false,
     },
-    'isStatTrak': {
-      type: Boolean,
-      default: false,
-    },
-    'isSouvenir': {
-      type: Boolean,
-      default: false,
+    'additional_type': {
+      type: String,
+      required: false,
     },
     _id: Number
   },

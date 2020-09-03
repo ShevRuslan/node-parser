@@ -10,7 +10,8 @@ module.exports = class {
     let res = null;
     for await (let domen of domens) {
       res = await this.requestWeapon(domen);
-      array.push(res);
+      array.push({domen, res});
+      console.log({ domen, res });
     }
     response.status(200).json({'status': array});
   }; 
@@ -37,10 +38,13 @@ module.exports = class {
       console.log(`Current link: ${currentLink}, PageLink: ${pageLink} PageItems:${itemsParePage}, Count: ${count}`);
       items.forEach(async item => {
         let arrayNameWeapon = item.name.split('|')
-        let isStatTrack = false;
-        let isSouvenir = false;
-        if (arrayNameWeapon[0].split(' ')[0] == "StatTrak™" || arrayNameWeapon[0].split(' ')[1] == "StatTrak™") isStatTrack = true;
-        if (arrayNameWeapon[0].split(' ')[0] == "Souvenir") isSouvenir = true;
+        let additional_type = 'Normal';
+        if (arrayNameWeapon[0].split(' ')[0] == "StatTrak™" || arrayNameWeapon[0].split(' ')[1] == "StatTrak™") {
+          additional_type = 'StatTrak'
+        }
+        if (arrayNameWeapon[0].split(' ')[0] == "Souvenir") {
+          additional_type = 'Souvenir'
+        }
         const exsistItem = await Weapon.findOne({ 'id': item.id });
         if (exsistItem) {
           exsistItem['price'] = item['price'];
@@ -65,10 +69,9 @@ module.exports = class {
             'percentage-market-steam': item['percentage-market-steam'],
             'percentage-market-autobuy': item['percentage-market-autobuy'],
             'link': item['link'],
-            'isStatTrak': isStatTrack,
-            'isSouvenir': isSouvenir,
             'type': domen.type,
-            'type_weapon': domen.type_weapon
+            'type_weapon': domen.type_weapon,
+            'additional_type': additional_type,
           });
           try {
             await newItem.save();
@@ -92,39 +95,28 @@ module.exports = class {
     }
     return arrayPages;
   }
-  getStattrackWeapon = async (request, response) => {
-    const items = await Weapon.find({ isStatTrak: true });
-    response.status(200).json({'items': items});
-  }
-  getSouvenirWeapon = async (request, response) => {
-    const items = await Weapon.find({ isSouvenir: true });
-    response.status(200).json({'items': items});
-  }
+
   getWeapon = async (request, response) => {
-    const items = await Weapon.find({ isStatTrak: false, isSouvenir: false, type: 'weapon' }, null, {sort: {'percentage-market-autobuy': -1}}).limit(100);
+    const { type, type_weapon, minPrice, maxPrice, textSearch, offset = 0 } = request.query;
+    const normallyTypeArray = JSON.parse(type);
+    const normallyTypeWeaponArray = JSON.parse(type_weapon)
+
+    let arrayTypeWeapon = []
+    normallyTypeWeaponArray.forEach(item => {
+      arrayTypeWeapon.push({ type: item.toLowerCase() });
+    })
+
+    let obj = []
+    normallyTypeArray.forEach(item => {
+      obj.push({ additional_type: item });
+    })
+    console.log(arrayTypeWeapon, obj);
+    const items = await Weapon.find(
+      {
+        name: { $regex: textSearch, $options: 'i' },
+        $and: [{$or: arrayTypeWeapon}, {$or: obj}],
+        price: { $gte: minPrice, $lte: maxPrice }
+      }, null, { sort: { 'percentage-market-autobuy': -1 } }).skip(parseInt(offset)).limit(100);
     response.status(200).json({'items': items});
-  }
-  getKnife = async (request, response) => {
-    const items = await Weapon.find({ type: 'knife' });
-    response.status(200).json({ 'items': items });
-  }
-  getGloves = async (request, response) => {
-    const items = await Weapon.find({ type: 'gloves' });
-    response.status(200).json({ 'items': items });
-  }
-  searchByName = async (request, response) => {
-    const {name} = request.query;
-    const items = await Weapon.find({ name: { $regex: name, $options: 'i' } }, null, {sort: {'percentage-market-autobuy': -1}}).limit(100);
-    response.status(200).json({ 'items': items });
-  }
-  searchBetweenPrice = async (request, response) => {
-    const minPrice = request.body.minPrice;
-    const maxPrice = request.body.maxPrice;
-    try {
-      const items = await Weapon.find({ price: { $gte:minPrice, $lte: maxPrice } });
-      response.status(200).json({items: items});
-    } catch (err) {
-      response.status(404).json({ message: err });
-    }
   }
 };

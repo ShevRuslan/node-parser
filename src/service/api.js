@@ -33,9 +33,9 @@ class Api {
     return params;
   }
   //Получение чемпионатов из линии
-  getWeapon = async () => {
+  getWeapon = async (data) => {
     let url = 'getWeapon'
-    const response = await this.getResource(url, null, 'GET');
+    const response = await this.getResource(url, null, 'GET', null, data);
     return response;
   }
   getWeaponByName = async (name) => {
