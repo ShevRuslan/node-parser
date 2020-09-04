@@ -7,7 +7,7 @@ module.exports = class {
       useNewUrlParser: true,
       useUnifiedTopology: true
     });
-
+    console.log(connection);
     return connection;
   };
   disconnect = async () => {
