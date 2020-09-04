@@ -111,12 +111,18 @@ module.exports = class {
       obj.push({ additional_type: item });
     })
     console.log(arrayTypeWeapon, obj);
-    const items = await Weapon.find(
+    let items = null;
+    try {
+      items = await Weapon.find(
       {
         name: { $regex: textSearch, $options: 'i' },
         $and: [{$or: arrayTypeWeapon}, {$or: obj}],
         price: { $gte: minPrice, $lte: maxPrice }
       }, null, { sort: { 'percentage-market-autobuy': -1 } }).skip(parseInt(offset)).limit(100);
+    }
+    catch(err) {
+      console.log(err);
+    }
     response.status(200).json({'items': items});
   }
 };
