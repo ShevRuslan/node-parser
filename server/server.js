@@ -5,6 +5,7 @@ const router = require('./router');
 const db = require('./db');
 const DB = new db();
 const path = require('path');
+const Update = require('./update.js');
 let server = require('http').Server(app);
 
 const publicPath = path.join(__dirname, '../public/');
@@ -17,6 +18,8 @@ app.use('/api', router);
 
 
 server.listen(3001, () => {
+  let update = new Update();
+  update.init();
   DB.connect();
   console.log('We are live on ' + 3001);
 })
