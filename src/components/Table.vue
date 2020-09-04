@@ -200,7 +200,7 @@ export default {
         console.log(localOffset, this.getFilter.offset);
         if (localOffset == this.getFilter.offset) {
           localOffset = 0;
-          setTimeout(this.update, 50000);
+          setTimeout(this.update, 5000);
           break;
         }
         localOffset = localOffset + 100;

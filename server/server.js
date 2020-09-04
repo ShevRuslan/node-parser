@@ -10,10 +10,9 @@ let server = require('http').Server(app);
 
 const publicPath = path.join(__dirname, '../public/');
 
-app.use(express.static(publicPath));
 app.use(bodyParser.json());
 app.use(express.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
-app.use(express.static(path.join(__dirname, 'public')));
+app.use('/',express.static(path.join(__dirname, '../dist/spa')));
 app.use('/api', router);
 
 
