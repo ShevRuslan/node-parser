@@ -19,6 +19,14 @@
         class=" filter-select"
         dense
       />
+      <q-select
+        outlined
+        v-model="precentageItems"
+        :options="precentage"
+        label="Процент"
+        class=" filter-select"
+        dense
+      />
       <q-input outlined v-model="minPrice" label="От" dense class="filter-select" />
       <q-input outlined v-model="maxPrice" label="До" dense class="filter-select" />
       <q-btn
@@ -40,6 +48,9 @@
         class="input-search"
       />
     </div>
+     <div class="flex filter-item q-mb-lg">
+       Всего оружий в БД - {{this.count}}
+    </div>
   </div>
 </template>
 
@@ -54,7 +65,13 @@ export default {
     return {
       options: ["StatTrak", "Souvenir", "Normal"],
       typeWeapon: ["Knife", "Gloves", "Weapon"],
+      precentage: ["Процент 1", "Процент 2"],
+      count: null,
     };
+  },
+  async created() {
+    const response = await Api.getCountItems();
+    this.count = response.count;
   },
   computed: {
     // смешиваем результат mapGetters с внешним объектом computed
@@ -106,6 +123,14 @@ export default {
       set(value) {
         this.changeTextSearch(value);
       }
+    },
+    precentageItems: {
+      get() {
+        return this.getFilter.precentageItems;
+      },
+      set(value) {
+        this.changePrecentage(value);
+      }
     }
   },
   methods: {
@@ -117,7 +142,8 @@ export default {
       "changeLoading",
       'changeOffset',
       'changeTextSearch',
-      'changeUpdateFilter'
+      'changeUpdateFilter',
+      'changePrecentage'
     ]),
     ...mapActions(["addItemsAfterSearch"]),
     async searchByName(value) {
@@ -141,6 +167,7 @@ export default {
         maxPrice: this.maxPrice,
         offset: this.offset,
         textSearch: this.textSearch,
+        precentageItems: this.precentageItems
       })
        const data = {
         type: JSON.stringify(this.type),
@@ -149,6 +176,7 @@ export default {
         maxPrice: this.maxPrice,
         offset: this.offset,
         textSearch: this.textSearch,
+        precentageItems: this.precentageItems
       };
       const response = await Api.getWeapon(data);
       return response;
@@ -172,7 +200,7 @@ export default {
     }
     justify-content: space-between;
     .filter-select {
-      width: 19%;
+      width: 16%;
     }
     .input-search {
       min-width: 250px;

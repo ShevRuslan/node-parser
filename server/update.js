@@ -4,12 +4,14 @@ const config = require('./config/');
 
 
 class Update {
+
+  obj = {}
+
   init = () =>{
-    const array = []
     const domens = config.domens;
-    let res = null;
     for (let domen of domens) {
-      res = this.update(domen);
+      this.obj[domen.link] = { map: {}, items: [] };
+      this.update(domen);
     }
   }
   update = async (domen) => {
@@ -34,8 +36,21 @@ class Update {
       const items = await response.data.items;
       itemsParePage = await response.data.pageItems;
       let count = await response.data.count;
+      let filteredItems = await items.filter((item) => {
+        let oldItemIndex = this.obj[domen.link].map[item.id];
+        let oldItem = this.obj[domen.link].items[oldItemIndex];
+        if (!oldItem) return true;
+        return item.price !== oldItem.price;
+      })
       console.log(`Current link: ${currentLink}, PageLink: ${pageLink} PageItems:${itemsParePage}, Count: ${count}, Domen: ${domen.link}`);
-      items.forEach(async item => {
+      filteredItems.forEach(async item => {
+        if (!this.obj[domen.link].map[item.id]) {
+          this.obj[domen.link].map[item.id] = this.obj[domen.link].items.length;
+          this.obj[domen.link].items.push(item) 
+        }
+        else {
+          this.obj[domen.link].items[this.obj[domen.link].map[item.id]] = item;
+        }
         let arrayNameWeapon = item.name.split('|')
         let additional_type = 'Normal';
         if (arrayNameWeapon[0].split(' ')[0] == "StatTrak™" || arrayNameWeapon[0].split(' ')[1] == "StatTrak™") {
@@ -92,7 +107,7 @@ class Update {
       if (currentPage != 1) currentLink--;
       currentLink++;
     }
-    setTimeout(() => this.update(domen), 30000);
+    setTimeout(() => this.update(domen), 10000);
   }
 }
 

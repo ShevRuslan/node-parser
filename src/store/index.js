@@ -23,6 +23,7 @@ export default function(/* { ssrContext } */) {
         minPrice: 0,
         maxPrice: 10000,
         offset: 0,
+        precentageItems: 'Процент 2',
         textSearch:'',
       },
       updateFilter: {},
@@ -75,6 +76,9 @@ export default function(/* { ssrContext } */) {
       },
       changeUpdateFilter(state, payload) {
         state.updateFilter = payload;
+      },
+      changePrecentage(state, payload) {
+        state.filter.precentageItems = payload;
       }
     },
     //async

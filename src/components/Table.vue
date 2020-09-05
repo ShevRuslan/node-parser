@@ -117,7 +117,8 @@ export default {
       minPrice: this.getFilter.minPrice,
       maxPrice: this.getFilter.maxPrice,
       offset: this.getFilter.offset,
-      textSearch: this.getFilter.textSearch
+      textSearch: this.getFilter.textSearch,
+      precentageItems: this.getFilter.precentageItems
     };
     this.changeUpdateFilter({
       type: this.getFilter.type,
@@ -125,7 +126,8 @@ export default {
       minPrice: this.getFilter.minPrice,
       maxPrice: this.getFilter.maxPrice,
       offset: this.getFilter.offset,
-      textSearch: this.getFilter.textSearch
+      textSearch: this.getFilter.textSearch,
+      precentageItems: this.getFilter.precentageItems
     });
     const response = await Api.getWeapon(data);
     this.addItemsAfterSearch(response.items);
@@ -152,7 +154,8 @@ export default {
             minPrice: this.getUpdateFilter.minPrice,
             maxPrice: this.getUpdateFilter.maxPrice,
             offset: this.getFilter.offset,
-            textSearch: this.getUpdateFilter.textSearch
+            textSearch: this.getUpdateFilter.textSearch,
+            precentageItems: this.getUpdateFilter.precentageItems
           };
           const response = await Api.getWeapon(data);
           this.addItems(response.items);
@@ -190,7 +193,8 @@ export default {
           minPrice: this.getUpdateFilter.minPrice,
           maxPrice: this.getUpdateFilter.maxPrice,
           offset: localOffset,
-          textSearch: this.getUpdateFilter.textSearch
+          textSearch: this.getUpdateFilter.textSearch,
+          precentageItems: this.getUpdateFilter.precentageItems
         };
         const response = await Api.getWeapon(data);
         map = this.updateMap(map, response.items);

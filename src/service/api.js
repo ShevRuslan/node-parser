@@ -43,5 +43,10 @@ class Api {
     const response = await this.getResource(url, null, 'GET', null, { name: name });
     return response;
   }
+  getCountItems = async () => {
+    let url = 'getCountItems';
+    const response = await this.getResource(url, null, 'GET', null);
+    return response;
+  }
 }
 export default new Api();
