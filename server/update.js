@@ -107,7 +107,7 @@ class Update {
       if (currentPage != 1) currentLink--;
       currentLink++;
     }
-    setTimeout(() => this.update(domen), 1000);
+    timer = setTimeout(() => this.update(domen), 1000);
   }
 }
 
