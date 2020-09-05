@@ -40,7 +40,7 @@ class Update {
         let oldItemIndex = this.obj[domen.link].map[item.id];
         let oldItem = this.obj[domen.link].items[oldItemIndex];
         if (!oldItem) return true;
-        return item.price !== oldItem.price;
+        return (item.price !== oldItem.price || item['price-steam'] !== oldItem['price-steam'] || item['price-autobuy'] !== oldItem['price-autobuy']);
       })
       console.log(`Current link: ${currentLink}, PageLink: ${pageLink} PageItems:${itemsParePage}, Count: ${count}, Domen: ${domen.link}`);
       filteredItems.forEach(async item => {
