@@ -50,6 +50,25 @@ export default function(/* { ssrContext } */) {
         if (state.items.length == 0) state.items = payload;
         else state.items = [...state.items, ...payload];
       },
+      updateItems(state, { items, offset }) {
+        console.log(offset);
+        let newArray = [];
+        if (offset >= 100) {
+          newArray = [
+            ...state.items.slice(0, offset),
+            ...items,
+            ...state.items.slice(offset + 100, offset + 200)
+          ];
+        }
+        else {
+          newArray = [
+            ...items,
+            ...state.items.slice(offset + 100, offset + 200)
+          ];
+        }
+       
+        state.items = newArray;
+      },
       addItemsAfterSearch(state, payload) {
         state.items = payload;
       },

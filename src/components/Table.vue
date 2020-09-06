@@ -181,6 +181,20 @@ export default {
     mapToArray(map) {
       return [...map.values()];
     },
+    updateItems(newItems, offset) {
+      let oldItems = [...this.getItems];
+      newItems.forEach((item, index) => {
+        if (this.getItems[offset + index] != undefined) {
+         if(this.getItems[offset + index].id != item.id) {
+            oldItems[offset + index] = item;
+         }
+         else {
+           oldItems[offset + index] = this.getItems[offset + index];
+         }
+        }
+      });
+      return oldItems;
+    },
     async update() {
       clearTimeout(this.timerUpdate);
       let localOffset = 0;
@@ -199,12 +213,14 @@ export default {
         const response = await Api.getWeapon(data);
         map = this.updateMap(map, response.items);
         let newItemsArray = this.mapToArray(map);
-        let uniqueItems = this.filterArray(newItemsArray);
+
+        const newItemsNow = this.updateItems(response.items, localOffset);
+        let uniqueItems = this.filterArray(newItemsNow);
         this.addItemsAfterSearch(uniqueItems);
-        console.log(localOffset, this.getFilter.offset);
+        // console.log(localOffset, this.getFilter.offset);
         if (localOffset == this.getFilter.offset) {
           localOffset = 0;
-          this.timerUpdate = setTimeout(this.update, 1000);
+          this.timerUpdate = setTimeout(this.update, 3000);
           break;
         }
         localOffset = localOffset + 100;

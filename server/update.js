@@ -32,6 +32,7 @@ class Update {
       }
       catch(err) {
         console.log(err)
+        continue;
       }
       const items = await response.data.items;
       itemsParePage = await response.data.pageItems;
