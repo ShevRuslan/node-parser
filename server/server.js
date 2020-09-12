@@ -6,6 +6,7 @@ const db = require('./db');
 const DB = new db();
 const path = require('path');
 const Update = require('./update.js');
+const Currency = require('./currency.js');
 let server = require('http').Server(app);
 
 const publicPath = path.join(__dirname, '../public/');
@@ -18,6 +19,8 @@ app.use('/api', router);
 
 server.listen(3001, () => {
   let update = new Update();
+  let currency = new Currency();
+  currency.init();
   update.init();
   DB.connect();
   console.log('We are live on ' + 3001);

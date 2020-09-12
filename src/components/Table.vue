@@ -2,28 +2,52 @@
   <div class="fit">
     <q-table
       dense
-      title="Оружия"
       :data="getItems"
       :columns="columns"
-      row-key="id"
+      row-key="_id"
       hide-bottom
       :pagination="pagination"
       :rows-per-page-options="[0]"
       :loading="getLoading"
+      separator="cell"
     >
       <template v-slot:body-cell-link="props">
-        <q-td :props="props">
+        <q-td :props="props" @click="copyToBoard(props.row.name)" style="cursor:pointer">
           <a :href="props.row.link" target="_blank">{{ props.row.name }}</a>
         </q-td>
       </template>
       <template v-slot:body-cell-price="props">
-        <q-td :props="props"> {{ props.row.price }} ¥ </q-td>
+         <template v-if="getUpdateFilter.valute == 'CNY'">
+          <q-td :props="props"> {{ props.row.price }} ¥ </q-td>
+        </template>
+        <template v-else-if="getUpdateFilter.valute == 'USD'">
+          <q-td :props="props"> {{ props.row.price }} $ </q-td>
+        </template>
+        <template v-else-if="getUpdateFilter.valute == 'RUB'">
+          <q-td :props="props"> {{ props.row.price }} ₽ </q-td>
+        </template>
       </template>
       <template v-slot:body-cell-price-steam="props">
-        <q-td :props="props"> {{ props.row["price-steam"] }} ¥ </q-td>
+        <template v-if="getUpdateFilter.valute == 'CNY'">
+          <q-td :props="props"> {{ props.row["price-steam"] }} ¥ </q-td>
+        </template>
+        <template v-else-if="getUpdateFilter.valute == 'USD'">
+          <q-td :props="props"> {{ props.row["price-steam"] }} $ </q-td>
+        </template>
+        <template v-else-if="getUpdateFilter.valute == 'RUB'">
+          <q-td :props="props"> {{ props.row["price-steam"] }} ₽ </q-td>
+        </template>
       </template>
       <template v-slot:body-cell-price-autobuy="props">
-        <q-td :props="props"> {{ props.row["price-autobuy"] }} ¥ </q-td>
+        <template v-if="getUpdateFilter.valute == 'CNY'">
+          <q-td :props="props"> {{ props.row["price-autobuy"] }} ¥ </q-td>
+        </template>
+        <template v-else-if="getUpdateFilter.valute == 'USD'">
+          <q-td :props="props"> {{ props.row["price-autobuy"] }} $ </q-td>
+        </template>
+        <template v-else-if="getUpdateFilter.valute == 'RUB'">
+          <q-td :props="props"> {{ props.row["price-autobuy"] }} ₽ </q-td>
+        </template>
       </template>
       <template v-slot:body-cell-percentage-market-steam="props">
         <q-td :props="props">
@@ -43,24 +67,11 @@
 import { mapGetters, mapMutations } from "vuex";
 import { mapActions } from "vuex";
 import Api from "../service/api.js";
+import { copyToClipboard } from 'quasar'
 export default {
   data() {
     return {
       columns: [
-        {
-          name: "id",
-          required: true,
-          label: "id",
-          field: "id",
-          align: "left"
-        },
-        {
-          name: "type_weapon",
-          required: true,
-          label: "Тип оружия",
-          field: "type_weapon",
-          align: "left"
-        },
         {
           name: "link",
           align: "left",
@@ -118,7 +129,9 @@ export default {
       maxPrice: this.getFilter.maxPrice,
       offset: this.getFilter.offset,
       textSearch: this.getFilter.textSearch,
-      precentageItems: this.getFilter.precentageItems
+      valute: this.getFilter.valute.value,
+      serviceFirst: this.getFilter.precentageServiceFirst,
+      serviceSecond: this.getFilter.precentageServiceSecond,
     };
     this.changeUpdateFilter({
       type: this.getFilter.type,
@@ -127,7 +140,9 @@ export default {
       maxPrice: this.getFilter.maxPrice,
       offset: this.getFilter.offset,
       textSearch: this.getFilter.textSearch,
-      precentageItems: this.getFilter.precentageItems
+      valute: this.getFilter.valute.value,
+      precentageServiceFirst: this.getFilter.precentageServiceFirst,
+      precentageServiceSecond: this.getFilter.precentageServiceSecond,
     });
     const response = await Api.getWeapon(data);
     this.addItemsAfterSearch(response.items);
@@ -141,6 +156,17 @@ export default {
   methods: {
     ...mapActions(["addItemsAfterSearch", "addItems"]),
     ...mapMutations(["changeLoading", "changeOffset", "changeUpdateFilter"]),
+    copyToBoard(value) {
+      copyToClipboard(value)
+      .then(() => {
+        this.$q.notify({
+            message: 'Название оружия успешно скопирован в буфер обмена.',
+            type: 'positive',
+            caption: value,
+            actions: [{ icon: 'close', color: 'white' }]
+          });
+      })
+    },
     scroll() {
       window.onscroll = async () => {
         let bottomOfWindow =
@@ -155,7 +181,9 @@ export default {
             maxPrice: this.getUpdateFilter.maxPrice,
             offset: this.getFilter.offset,
             textSearch: this.getUpdateFilter.textSearch,
-            precentageItems: this.getUpdateFilter.precentageItems
+            valute: this.getUpdateFilter.valute,
+            serviceFirst: this.getUpdateFilter.precentageServiceFirst,
+            serviceSecond: this.getUpdateFilter.precentageServiceSecond,
           };
           const response = await Api.getWeapon(data);
           this.addItems(response.items);
@@ -167,15 +195,15 @@ export default {
     filterArray(array) {
       let set = new Set();
       let uniqueArray = array.filter(item => {
-        let exsist = set.has(item.id);
+        let exsist = set.has(item['_id']);
         if (exsist) return false;
-        set.add(item.id);
+        set.add(item['_id']);
         return item;
       });
       return uniqueArray;
     },
     updateMap(map, array) {
-      array.forEach(el => map.set(el.id, el));
+      array.forEach(el => map.set(el['_id'], el));
       return map;
     },
     mapToArray(map) {
@@ -185,12 +213,7 @@ export default {
       let oldItems = [...this.getItems];
       newItems.forEach((item, index) => {
         if (this.getItems[offset + index] != undefined) {
-         if(this.getItems[offset + index].id != item.id) {
-            oldItems[offset + index] = item;
-         }
-         else {
-           oldItems[offset + index] = this.getItems[offset + index];
-         }
+          oldItems[offset + index] = item
         }
       });
       return oldItems;
@@ -207,8 +230,10 @@ export default {
           minPrice: this.getUpdateFilter.minPrice,
           maxPrice: this.getUpdateFilter.maxPrice,
           offset: localOffset,
+          valute: this.getUpdateFilter.valute,
           textSearch: this.getUpdateFilter.textSearch,
-          precentageItems: this.getUpdateFilter.precentageItems
+          serviceFirst: this.getUpdateFilter.precentageServiceFirst,
+          serviceSecond: this.getUpdateFilter.precentageServiceSecond,
         };
         const response = await Api.getWeapon(data);
         map = this.updateMap(map, response.items);
@@ -217,7 +242,6 @@ export default {
         const newItemsNow = this.updateItems(response.items, localOffset);
         let uniqueItems = this.filterArray(newItemsNow);
         this.addItemsAfterSearch(uniqueItems);
-        // console.log(localOffset, this.getFilter.offset);
         if (localOffset == this.getFilter.offset) {
           localOffset = 0;
           this.timerUpdate = setTimeout(this.update, 3000);

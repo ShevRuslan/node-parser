@@ -16,11 +16,47 @@ const weapon = new Schema(
       type: Number,
       required: true,
     },
+    priceCNY: {
+      type: Number,
+      required: true,
+    },
+    priceRUB: {
+      type: Number,
+      required: true,
+    },
+    priceUSD: {
+      type: Number,
+      required: true,
+    },
     'price-steam': {
       type: Number,
       required: true,
     },
+    'price-steam-CNY': {
+      type: Number,
+      required: true,
+    },
+    'price-steam-RUB': {
+      type: Number,
+      required: true,
+    },
+    'price-steam-USD': {
+      type: Number,
+      required: true,
+    },
     'price-autobuy': {
+      type: Number,
+      required: false,
+    },
+    'price-autobuy-CNY': {
+      type: Number,
+      required: false,
+    },
+    'price-autobuy-RUB': {
+      type: Number,
+      required: false,
+    },
+    'price-autobuy-USD': {
       type: Number,
       required: false,
     },

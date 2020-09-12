@@ -6,10 +6,23 @@
         v-model="type"
         :options="options"
         label="Тип"
-        multiple 
+        multiple
         class="filter-select"
         dense
-      />
+      >
+        <template v-slot:option="scope">
+          <q-item v-bind="scope.itemProps" v-on="scope.itemEvents">
+            <q-item-section>
+              <q-toggle
+                color="blue"
+                :label="scope.opt"
+                v-model="type"
+                :val="scope.opt"
+              />
+            </q-item-section>
+          </q-item>
+        </template>
+      </q-select>
       <q-select
         outlined
         v-model="type_weapon"
@@ -18,23 +31,74 @@
         multiple
         class=" filter-select"
         dense
+      >
+        <template v-slot:option="scope">
+          <q-item v-bind="scope.itemProps" v-on="scope.itemEvents">
+            <q-item-section>
+              <q-toggle
+                color="blue"
+                :label="scope.opt"
+                v-model="type_weapon"
+                :val="scope.opt"
+              />
+            </q-item-section>
+          </q-item> </template
+      ></q-select>
+      <q-select
+        v-model="valute"
+        :options="value"
+        label="Валюта"
+        class="filter-select"
+        outlined
+        dense
+        options-dense
+      >
+        <template v-slot:option="scope">
+          <q-item
+            v-bind="scope.itemProps"
+            v-on="scope.itemEvents"
+          >
+            <q-item-section avatar>
+              <q-icon :name="scope.opt.icon" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label v-html="scope.opt.label" />
+              <q-item-label caption>{{ scope.opt.description }}</q-item-label>
+            </q-item-section>
+          </q-item>
+        </template>
+      </q-select>
+      <q-select
+        outlined
+        v-model="precentageFirst"
+        :options="precentage"
+        label="Сервис 1"
+        class=" filter-select"
+        dense
       />
       <q-select
         outlined
-        v-model="precentageItems"
+        v-model="precentageSecond"
         :options="precentage"
-        label="Процент"
+        label="Сервис 2"
         class=" filter-select"
         dense
       />
-      <q-input outlined v-model="minPrice" label="От" dense class="filter-select" />
-      <q-input outlined v-model="maxPrice" label="До" dense class="filter-select" />
-      <q-btn
-        color="primary"
-        class=" filter-select"
+      <q-input
+        outlined
+        v-model="minPrice"
+        label="От"
         dense
-        @click="search"
-      >
+        class="filter-select"
+      />
+      <q-input
+        outlined
+        v-model="maxPrice"
+        label="До"
+        dense
+        class="filter-select"
+      />
+      <q-btn color="primary" class=" filter-select" dense @click="search">
         Поиск
       </q-btn>
     </div>
@@ -47,9 +111,6 @@
         @input="searchByName"
         class="input-search"
       />
-    </div>
-     <div class="flex filter-item q-mb-lg">
-       Всего оружий в БД - {{this.count}}
     </div>
   </div>
 </template>
@@ -65,8 +126,29 @@ export default {
     return {
       options: ["StatTrak", "Souvenir", "Normal"],
       typeWeapon: ["Knife", "Gloves", "Weapon"],
-      precentage: ["Процент 1", "Процент 2"],
-      count: null,
+      precentage: ["buff.163 min price", "buff.163 autobuy", "steam min price"],
+      value: [
+        {
+          label: "USD",
+          value: "USD",
+          description: "Американский доллар",
+          icon: "$"
+        },
+        {
+          label: "RUB",
+          value: "RUB",
+          description: "Российский рубль",
+          icon: "₽"
+        },
+        {
+          label: "CNY",
+          value: "CNY",
+          description: "Китайский юань",
+          icon: "¥"
+        }
+      ],
+      // precentage: [{label: "buff.163 min price", check: true}, {label: "buff.163 autobuy", check: false}, {label: "steam min price", check: false}],
+      count: null
     };
   },
   async created() {
@@ -124,12 +206,28 @@ export default {
         this.changeTextSearch(value);
       }
     },
-    precentageItems: {
+    precentageFirst: {
       get() {
-        return this.getFilter.precentageItems;
+        return this.getFilter.precentageServiceFirst;
       },
       set(value) {
-        this.changePrecentage(value);
+        this.changePrecentageFirst(value);
+      }
+    },
+    precentageSecond: {
+      get() {
+        return this.getFilter.precentageServiceSecond;
+      },
+      set(value) {
+        this.changePrecentageSecond(value);
+      }
+    },
+    valute: {
+      get() {
+        return this.getFilter.valute;
+      },
+      set(value) {
+        this.changeValute(value);
       }
     }
   },
@@ -140,10 +238,12 @@ export default {
       "changeMinPrice",
       "changeMaxPrice",
       "changeLoading",
-      'changeOffset',
-      'changeTextSearch',
-      'changeUpdateFilter',
-      'changePrecentage'
+      "changeOffset",
+      "changeTextSearch",
+      "changeUpdateFilter",
+      "changePrecentageFirst",
+      "changePrecentageSecond",
+      "changeValute"
     ]),
     ...mapActions(["addItemsAfterSearch"]),
     async searchByName(value) {
@@ -167,16 +267,22 @@ export default {
         maxPrice: this.maxPrice,
         offset: this.offset,
         textSearch: this.textSearch,
-        precentageItems: this.precentageItems
-      })
-       const data = {
+        precentageItems: this.precentageItemsmtype,
+        valute: this.valute.value,
+        precentageServiceFirst: this.precentageFirst,
+        precentageServiceSecond: this.precentageSecond,
+      });
+      const data = {
         type: JSON.stringify(this.type),
         type_weapon: JSON.stringify(this.type_weapon),
         minPrice: this.minPrice,
         maxPrice: this.maxPrice,
         offset: this.offset,
         textSearch: this.textSearch,
-        precentageItems: this.precentageItems
+        precentageItems: this.precentageItems,
+        valute: this.valute.value,
+        serviceFirst: this.precentageFirst,
+        serviceSecond: this.precentageSecond
       };
       const response = await Api.getWeapon(data);
       return response;
@@ -192,20 +298,14 @@ export default {
   flex-direction: column;
   .filter-item {
     display: flex;
-    &:first-child {
-      width: 70%;
-    }
-    &:nth-child(2) {
-      width: 30%;
-    }
     justify-content: space-between;
+    height: 40px;
     .filter-select {
-      width: 16%;
+      width: 12%;
     }
     .input-search {
       min-width: 250px;
     }
   }
-
 }
 </style>

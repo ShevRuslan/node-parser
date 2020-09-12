@@ -23,10 +23,19 @@ export default function(/* { ssrContext } */) {
         minPrice: 0,
         maxPrice: 10000,
         offset: 0,
-        precentageItems: 'Процент 2',
+        precentageServiceFirst: 'buff.163 min price',
+        precentageServiceSecond: 'steam min price',
+        valute: {
+          label: "USD",
+          value: "USD",
+          description: "Американский доллар",
+          icon: "$"
+        },
         textSearch:'',
       },
-      updateFilter: {},
+      updateFilter: {
+        
+      },
       items: [],
       loading:true
     },
@@ -96,8 +105,14 @@ export default function(/* { ssrContext } */) {
       changeUpdateFilter(state, payload) {
         state.updateFilter = payload;
       },
-      changePrecentage(state, payload) {
-        state.filter.precentageItems = payload;
+      changePrecentageFirst(state, payload) {
+        state.filter.precentageServiceFirst = payload;
+      },
+      changePrecentageSecond(state, payload) {
+        state.filter.precentageServiceSecond = payload;
+      },
+      changeValute(state, payload) {
+        state.filter.valute = payload;
       }
     },
     //async

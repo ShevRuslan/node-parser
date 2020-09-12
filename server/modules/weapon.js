@@ -1,7 +1,7 @@
 const Weapon = require("../models/weapons");
 const axios = require("axios");
 const config = require("../config/");
-
+const Currency = require('../currency.js');
 module.exports = class {
   getInfo = async (request, response) => {
     const array = [];
@@ -114,10 +114,22 @@ module.exports = class {
       minPrice,
       maxPrice,
       textSearch,
-      precentageItems,
+      valute,
+      serviceFirst,
+      serviceSecond,
       offset = 0
     } = request.query;
     const normallyTypeArray = JSON.parse(type);
+
+    let precentageItems = "Процент 1";
+
+    if ((serviceFirst == "buff.163 min price" && serviceSecond == "steam min price") || (serviceSecond == "buff.163 min price" && serviceFirst == "steam min price")) {
+      precentageItems = "Процент 1";
+    }
+    else if ((serviceFirst == "buff.163 autobuy" && serviceSecond == "steam min price") || (serviceSecond == "buff.163 autobuy" && serviceFirst == "steam min price")) {
+      precentageItems = "Процент 2";
+    }
+
     const normallyTypeWeaponArray = JSON.parse(type_weapon);
     let arrayTypeWeapon = [];
     normallyTypeWeaponArray.forEach(item => {
@@ -125,7 +137,6 @@ module.exports = class {
     });
 
     let obj = [];
-    console.log(normallyTypeArray);
     if (normallyTypeArray.length == 0) {
       obj = [
         { additional_type: "StatTrak" },
@@ -137,7 +148,6 @@ module.exports = class {
         obj.push({ additional_type: item });
       });
     }
-    console.log(arrayTypeWeapon, obj, precentageItems);
     let items = null;
     try {
       if (precentageItems == "Процент 1") {
@@ -145,7 +155,7 @@ module.exports = class {
           {
             name: { $regex: textSearch, $options: "i" },
             $and: [{ $or: arrayTypeWeapon }, { $or: obj }],
-            price: { $gte: minPrice, $lte: maxPrice }
+            priceCNY: { $gte: minPrice, $lte: maxPrice }
           },
           null,
           { sort: { "percentage-market-steam": -1 } }
@@ -157,7 +167,7 @@ module.exports = class {
           {
             name: { $regex: textSearch, $options: "i" },
             $and: [{ $or: arrayTypeWeapon }, { $or: obj }],
-            price: { $gte: minPrice, $lte: maxPrice }
+            priceCNY: { $gte: minPrice, $lte: maxPrice }
           },
           null,
           { sort: { "percentage-market-autobuy": -1 } }
@@ -168,6 +178,11 @@ module.exports = class {
     } catch (err) {
       console.log(err);
     }
+    items.forEach(item => {
+      item.price = item[`price${valute}`];
+      item['price-steam'] = item[`price-steam-${valute}`];
+      item['price-autobuy'] = item[`price-steam-${valute}`];
+    });
     response.status(200).json({ items: items });
   };
 };
