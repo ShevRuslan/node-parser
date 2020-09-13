@@ -17,11 +17,9 @@ app.use('/',express.static(path.join(__dirname, '../dist/spa')));
 app.use('/api', router);
 
 
-server.listen(3001, () => {
-  let update = new Update();
-  let currency = new Currency();
-  currency.init();
-  update.init();
+server.listen(3001, async () => {
   DB.connect();
+  let update = new Update();
+  update.init();
   console.log('We are live on ' + 3001);
 })

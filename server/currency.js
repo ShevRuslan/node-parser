@@ -5,7 +5,7 @@ module.exports = class {
     'CNY': {},
   }
   init = () => {
-    this.requestCurrency();
+    return this.requestCurrency();
   }
   requestCurrency = async () => {
     const response = await axios.get('https://www.cbr-xml-daily.ru/daily_json.js');
@@ -15,9 +15,6 @@ module.exports = class {
     return true;
   }
   getCurrency = async () => {
-    const isUpdate = await this.requestCurrency();
-    if (isUpdate) {
-      return this.currency;
-    }
+    return this.currency;
   }
 }
