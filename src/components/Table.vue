@@ -16,47 +16,15 @@
           <a :href="props.row.link" target="_blank">{{ props.row.name }}</a>
         </q-td>
       </template>
-      <template v-slot:body-cell-price="props">
-         <template v-if="getUpdateFilter.valute == 'CNY'">
-          <q-td :props="props"> {{ props.row.price }} ¥ </q-td>
-        </template>
-        <template v-else-if="getUpdateFilter.valute == 'USD'">
-          <q-td :props="props"> {{ props.row.price }} $ </q-td>
-        </template>
-        <template v-else-if="getUpdateFilter.valute == 'RUB'">
-          <q-td :props="props"> {{ props.row.price }} ₽ </q-td>
-        </template>
+      <template v-slot:body-cell-price-first="props">
+        <q-td :props="props"> {{ props.row['price-first'] }} {{currencyChar}} </q-td>
       </template>
-      <template v-slot:body-cell-price-steam="props">
-        <template v-if="getUpdateFilter.valute == 'CNY'">
-          <q-td :props="props"> {{ props.row["price-steam"] }} ¥ </q-td>
-        </template>
-        <template v-else-if="getUpdateFilter.valute == 'USD'">
-          <q-td :props="props"> {{ props.row["price-steam"] }} $ </q-td>
-        </template>
-        <template v-else-if="getUpdateFilter.valute == 'RUB'">
-          <q-td :props="props"> {{ props.row["price-steam"] }} ₽ </q-td>
-        </template>
+      <template v-slot:body-cell-price-second="props">
+        <q-td :props="props"> {{ props.row["price-second"] }} {{currencyChar}} </q-td>
       </template>
-      <template v-slot:body-cell-price-autobuy="props">
-        <template v-if="getUpdateFilter.valute == 'CNY'">
-          <q-td :props="props"> {{ props.row["price-autobuy"] }} ¥ </q-td>
-        </template>
-        <template v-else-if="getUpdateFilter.valute == 'USD'">
-          <q-td :props="props"> {{ props.row["price-autobuy"] }} $ </q-td>
-        </template>
-        <template v-else-if="getUpdateFilter.valute == 'RUB'">
-          <q-td :props="props"> {{ props.row["price-autobuy"] }} ₽ </q-td>
-        </template>
-      </template>
-      <template v-slot:body-cell-percentage-market-steam="props">
+      <template v-slot:body-cell-percent="props">
         <q-td :props="props">
-          {{ props.row["percentage-market-steam"] }} %
-        </q-td>
-      </template>
-      <template v-slot:body-cell-percentage-market-autobuy="props">
-        <q-td :props="props">
-          {{ props.row["percentage-market-autobuy"] }} %
+          {{ props.row["percent"] }} %
         </q-td>
       </template>
     </q-table>
@@ -79,35 +47,23 @@ export default {
           field: "link"
         },
         {
-          name: "price",
-          label: "Цена",
-          field: "price",
+          name: "price-first",
+          label: "Цена сервиса 1",
+          field: "price-first",
           sortable: true
         },
         {
-          name: "price-steam",
-          label: "Цена стима",
-          field: "price-steam",
+          name: "price-second",
+          label: "Цена сервиса 2",
+          field: "price-second",
           sortable: true
         },
         {
-          name: "price-autobuy",
-          label: "Автопокупка",
-          field: "price-autobuy",
+          name: "percent",
+          label: "Процент",
+          field: "percent",
           sortable: true
         },
-        {
-          name: "percentage-market-steam",
-          label: "Процент 1",
-          field: "percentage-market-steam",
-          sortable: true
-        },
-        {
-          name: "percentage-market-autobuy",
-          label: "Процент 2",
-          field: "percentage-market-autobuy",
-          sortable: true
-        }
       ],
       loading: true,
       data: [],
@@ -119,7 +75,13 @@ export default {
   },
   computed: {
     // смешиваем результат mapGetters с внешним объектом computed
-    ...mapGetters(["getItems", "getLoading", "getFilter", "getUpdateFilter"])
+    ...mapGetters(["getItems", "getLoading", "getFilter", "getUpdateFilter"]),
+    currencyChar() {
+      let currencyChar = "¥";
+      if(this.getUpdateFilter.valute == 'USD') currencyChar = "$";
+      else if(this.getUpdateFilter.valute == 'RUB') currencyChar = "₽"
+      return currencyChar;
+    }
   },
   async created() {
     const data = {

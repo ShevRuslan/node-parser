@@ -148,41 +148,54 @@ module.exports = class {
         obj.push({ additional_type: item });
       });
     }
+
     let items = null;
+    const serviceFirstField = this.getService(serviceFirst, valute);
+    const serviceSecondField = this.getService(serviceSecond, valute);
+
     try {
-      if (precentageItems == "Процент 1") {
-        items = await Weapon.find(
-          {
-            name: { $regex: textSearch, $options: "i" },
-            $and: [{ $or: arrayTypeWeapon }, { $or: obj }],
-            priceCNY: { $gte: minPrice, $lte: maxPrice }
-          },
-          null,
-          { sort: { "percentage-market-steam": -1 } }
-        )
-          .skip(parseInt(offset))
-          .limit(100);
-      } else {
-        items = await Weapon.find(
-          {
-            name: { $regex: textSearch, $options: "i" },
-            $and: [{ $or: arrayTypeWeapon }, { $or: obj }],
-            priceCNY: { $gte: minPrice, $lte: maxPrice }
-          },
-          null,
-          { sort: { "percentage-market-autobuy": -1 } }
-        )
-          .skip(parseInt(offset))
-          .limit(100);
-      }
+      items = await Weapon.find(
+        {
+          name: { $regex: textSearch, $options: "i" },
+          $and: [{ $or: arrayTypeWeapon }, { $or: obj }],
+          [serviceFirstField]: { $gte: minPrice, $lte: maxPrice, $ne: 0 }
+        },
+      )
+        .limit(20000);
     } catch (err) {
       console.log(err);
     }
     items.forEach(item => {
-      item.price = item[`price${valute}`];
-      item['price-steam'] = item[`price-steam-${valute}`];
-      item['price-autobuy'] = item[`price-steam-${valute}`];
+      item['percent'] = this.getPercentage(item[serviceFirstField], item[serviceSecondField], serviceSecond).toFixed(2);;
+      item['price-first'] = item[serviceFirstField];
+      item['price-second'] = item[serviceSecondField];
     });
-    response.status(200).json({ items: items });
+    items.sort((a, b) => (a.percent > b.percent) ? -1 : 1)
+    const newItems = items.slice(parseInt(offset), parseInt(offset) + 100);
+    console.log(offset);
+    response.status(200).json({ items: newItems });
   };
+  getPercentage(value1, value2, serviceCommission) {
+    //x - цена сервиса 1
+    //y - цена сервиса 2
+    //z - процент сервиса 2
+    //100*(((X*(100-Z)/100)/Y)-1)
+    let objСommission = {
+      'buff.163 min price': 2.5,
+      'buff.163 autobuy': 2.5,
+      "steam min price": 13
+    }
+    const commission = objСommission[serviceCommission];
+    return 100 * (((value2 * (100 - commission) / 100) / value1) - 1);
+  }
+  getService(service, valute) {
+    switch (service) {
+      case 'buff.163 min price':
+        return `price-buff-${valute}`;
+      case 'buff.163 autobuy':
+        return `price-autobuy-${valute}`;
+      case 'steam min price':
+        return `price-steam-${valute}`
+    }
+  }
 };

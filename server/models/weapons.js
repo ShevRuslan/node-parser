@@ -12,23 +12,30 @@ const weapon = new Schema(
       type: String,
       required: true
     },
-    price: {
+    percent: {
+      type: Number,
+      required: false,
+      default: '',
+    },
+    "price-first": {
+      type: Number,
+      required: false,
+      default: '',
+    },
+    "price-second": {
+      type: Number,
+      required: false,
+      default: '',
+    },
+    "price-buff-CNY": {
       type: Number,
       required: true,
     },
-    priceCNY: {
+    "price-buff-RUB": {
       type: Number,
       required: true,
     },
-    priceRUB: {
-      type: Number,
-      required: true,
-    },
-    priceUSD: {
-      type: Number,
-      required: true,
-    },
-    'price-steam': {
+    "price-buff-USD": {
       type: Number,
       required: true,
     },
@@ -44,10 +51,6 @@ const weapon = new Schema(
       type: Number,
       required: true,
     },
-    'price-autobuy': {
-      type: Number,
-      required: false,
-    },
     'price-autobuy-CNY': {
       type: Number,
       required: false,
@@ -57,14 +60,6 @@ const weapon = new Schema(
       required: false,
     },
     'price-autobuy-USD': {
-      type: Number,
-      required: false,
-    },
-    'percentage-market-steam': {
-      type: Number,
-      required: false,
-    },
-    'percentage-market-autobuy': {
       type: Number,
       required: false,
     },
@@ -86,7 +81,7 @@ const weapon = new Schema(
     },
     _id: Number
   },
-  { _id: false, versionKey: false }
+  { _id: false, versionKey: false, strict: false }
 );
 
 weapon.plugin(AutoIncrement);
