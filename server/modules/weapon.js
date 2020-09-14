@@ -121,15 +121,6 @@ module.exports = class {
     } = request.query;
     const normallyTypeArray = JSON.parse(type);
 
-    let precentageItems = "Процент 1";
-
-    if ((serviceFirst == "buff.163 min price" && serviceSecond == "steam min price") || (serviceSecond == "buff.163 min price" && serviceFirst == "steam min price")) {
-      precentageItems = "Процент 1";
-    }
-    else if ((serviceFirst == "buff.163 autobuy" && serviceSecond == "steam min price") || (serviceSecond == "buff.163 autobuy" && serviceFirst == "steam min price")) {
-      precentageItems = "Процент 2";
-    }
-
     const normallyTypeWeaponArray = JSON.parse(type_weapon);
     let arrayTypeWeapon = [];
     normallyTypeWeaponArray.forEach(item => {
@@ -152,7 +143,9 @@ module.exports = class {
     let items = null;
     const serviceFirstField = this.getService(serviceFirst, valute);
     const serviceSecondField = this.getService(serviceSecond, valute);
-
+    const serviceFirstFieldNotValute = this.getService(serviceFirst);
+    const serviceSecondFieldNotValute = this.getService(serviceSecond);
+    console.log(serviceFirstFieldNotValute, serviceSecondFieldNotValute);
     try {
       items = await Weapon.find(
         {
@@ -166,7 +159,7 @@ module.exports = class {
       console.log(err);
     }
     items.forEach(item => {
-      item['percent'] = this.getPercentage(item[serviceFirstField], item[serviceSecondField], serviceSecond).toFixed(2);;
+      item['percent'] = this.getPercentage(item[serviceFirstFieldNotValute], item[serviceSecondFieldNotValute], serviceSecond).toFixed(2);;
       item['price-first'] = item[serviceFirstField];
       item['price-second'] = item[serviceSecondField];
     });
@@ -188,14 +181,26 @@ module.exports = class {
     const commission = objСommission[serviceCommission];
     return 100 * (((value2 * (100 - commission) / 100) / value1) - 1);
   }
-  getService(service, valute) {
-    switch (service) {
-      case 'buff.163 min price':
-        return `price-buff-${valute}`;
-      case 'buff.163 autobuy':
-        return `price-autobuy-${valute}`;
-      case 'steam min price':
-        return `price-steam-${valute}`
+  getService(service, valute = null) {
+    if (valute != null) {
+      switch (service) {
+        case 'buff.163 min price':
+          return `price-buff-${valute}`;
+        case 'buff.163 autobuy':
+          return `price-autobuy-${valute}`;
+        case 'steam min price':
+          return `price-steam-${valute}`
+      } 
+    }
+    else {
+      switch (service) {
+        case 'buff.163 min price':
+          return `price-buff-CNY`;
+        case 'buff.163 autobuy':
+          return `price-autobuy-CNY`;
+        case 'steam min price':
+          return `price-steam-CNY`
+      }
     }
   }
 };
