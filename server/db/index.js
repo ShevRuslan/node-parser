@@ -7,7 +7,7 @@ module.exports = class {
       useNewUrlParser: true,
       useUnifiedTopology: true
     });
-    //console.log(connection);
+    console.log(mongoose.version);
     return connection;
   };
   disconnect = async () => {

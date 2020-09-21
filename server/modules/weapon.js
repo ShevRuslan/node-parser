@@ -1,112 +1,6 @@
 const Weapon = require("../models/weapons");
-const axios = require("axios");
-const config = require("../config/");
 const Currency = require('../currency.js');
 module.exports = class {
-  getInfo = async (request, response) => {
-    const array = [];
-    const domens = config.domens;
-    let res = null;
-    for await (let domen of domens) {
-      res = await this.requestWeapon(domen);
-      array.push({ domen, res });
-      console.log({ domen, res });
-    }
-    response.status(200).json({ status: array });
-  };
-  getCountWeapons = async (request, response) => {
-    const count = await Weapon.countDocuments();
-    response.status(200).json({ count: count });
-  }
-  requestWeapon = async domen => {
-    let arrayPages = [];
-    let currentLink = 1;
-    let currentPage = 1;
-    let sendRequest = true;
-    let pageLink = 80;
-    let itemsParePage = 100;
-    while (sendRequest) {
-      let response = null;
-      try {
-        if (currentPage == 1 && currentLink == 0) currentLink = 1;
-        arrayPages.push(currentLink);
-        response = await axios.get(
-          `http://${domen.link}/api/getWeapon/${currentPage}?currentLink=${currentLink}`
-        );
-      } catch (err) {
-        console.log(err);
-      }
-      const items = await response.data.items;
-      itemsParePage = await response.data.pageItems;
-      let count = await response.data.count;
-      console.log(
-        `Current link: ${currentLink}, PageLink: ${pageLink} PageItems:${itemsParePage}, Count: ${count}`
-      );
-      items.forEach(async item => {
-        let arrayNameWeapon = item.name.split("|");
-        let additional_type = "Normal";
-        if (
-          arrayNameWeapon[0].split(" ")[0] == "StatTrak™" ||
-          arrayNameWeapon[0].split(" ")[1] == "StatTrak™"
-        ) {
-          additional_type = "StatTrak";
-        }
-        if (arrayNameWeapon[0].split(" ")[0] == "Souvenir") {
-          additional_type = "Souvenir";
-        }
-        const exsistItem = await Weapon.findOne({ id: item.id });
-        if (exsistItem) {
-          exsistItem["price"] = item["price"];
-          exsistItem["price-steam"] = item["price-steam"];
-          exsistItem["price-autobuy"] = item["price-autobuy"];
-          exsistItem["percentage-market-steam"] =
-            item["percentage-market-steam"];
-          exsistItem["percentage-market-autobuy"] =
-            item["percentage-market-autobuy"];
-          try {
-            await exsistItem.save();
-          } catch (err) {
-            console.log(err);
-          }
-        } else {
-          let newItem = new Weapon({
-            id: item.id,
-            name: item.name,
-            price: item.price,
-            "price-steam": item["price-steam"],
-            "price-autobuy": item["price-autobuy"],
-            "percentage-market-steam": item["percentage-market-steam"],
-            "percentage-market-autobuy": item["percentage-market-autobuy"],
-            link: item["link"],
-            type: domen.type,
-            type_weapon: domen.type_weapon,
-            additional_type: additional_type
-          });
-          try {
-            await newItem.save();
-          } catch (err) {
-            console.log(err);
-          }
-        }
-      });
-      if (currentLink * pageLink == itemsParePage) {
-        currentLink = 0;
-        sendRequest = false;
-      }
-      if (
-        (((currentPage - 1) * itemsParePage) / 10 + currentLink) * 10 ==
-        count
-      ) {
-        currentLink = 1;
-        sendRequest = false;
-      }
-
-      if (currentPage != 1) currentLink--;
-      currentLink++;
-    }
-    return arrayPages;
-  };
-
   getWeapon = async (request, response) => {
     const {
       type,
@@ -154,7 +48,7 @@ module.exports = class {
           [serviceFirstField]: { $gte: minPrice, $lte: maxPrice, $ne: 0 }
         },
       )
-        .limit(20000);
+        .limit(50000);
     } catch (err) {
       console.log(err);
     }
@@ -176,7 +70,8 @@ module.exports = class {
     let objСommission = {
       'buff.163 min price': 2.5,
       'buff.163 autobuy': 2.5,
-      "steam min price": 13
+      "steam min price": 13,
+      "csgotm price": 7,
     }
     const commission = objСommission[serviceCommission];
     return 100 * (((value2 * (100 - commission) / 100) / value1) - 1);
@@ -190,6 +85,8 @@ module.exports = class {
           return `price-autobuy-${valute}`;
         case 'steam min price':
           return `price-steam-${valute}`
+        case 'csgotm price':
+            return `price-csgotm-${valute}`
       } 
     }
     else {
@@ -200,6 +97,8 @@ module.exports = class {
           return `price-autobuy-CNY`;
         case 'steam min price':
           return `price-steam-CNY`
+        case 'csgotm price':
+            return `price-csgotm-CNY`
       }
     }
   }

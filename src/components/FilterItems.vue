@@ -126,7 +126,7 @@ export default {
     return {
       options: ["StatTrak", "Souvenir", "Normal"],
       typeWeapon: ["Knife", "Gloves", "Weapon"],
-      precentage: ["buff.163 min price", "buff.163 autobuy", "steam min price"],
+      precentage: ["buff.163 min price", "buff.163 autobuy", "steam min price", 'csgotm price'],
       value: [
         {
           label: "USD",
