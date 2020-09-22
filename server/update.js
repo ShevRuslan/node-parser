@@ -64,7 +64,9 @@ class Update {
         }
      }));
       console.log(this.obj[domen.link].items.length);
+
       this.obj[domen.link].map = {};
+
       this.obj[domen.link].items.forEach((item, index) => {
         this.obj[domen.link].map[item.market_hash_name] = index;
       })
@@ -77,7 +79,7 @@ class Update {
         return (item.price !== oldItem.price); // если цены нет - добавляем
       });
   
-      console.log(`CSGOTM NEW ITEMS: ${filteredItems.length}`)
+      console.log(`----------------------------CSGOTM NEW ITEMS: ${filteredItems.length}`)
       
       filteredItems.forEach(async item => {
         if (!this.obj[domen.link].map[item.market_hash_name]) {
@@ -88,12 +90,11 @@ class Update {
         }
         const exsistItem = await Weapon.findOne({ name: item.market_hash_name });
         if (exsistItem) {
-          console.log(item.market_hash_name,exsistItem['price-csgotm-RUB'], item.price);
           exsistItem['price-csgotm-RUB'] = parseFloat(item.price);
           exsistItem['price-csgotm-CNY'] = (await this.changeValue(parseFloat(item.price), "RUB", "CNY")).toFixed(3);
           exsistItem['price-csgotm-USD'] = (await this.changeValue(parseFloat(item.price), "RUB", "USD")).toFixed(3);
           try {
-            exsistItem.save();
+           await exsistItem.save();
           }
           catch (err) {
             console.log(err);

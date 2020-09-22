@@ -39,16 +39,15 @@ module.exports = class {
     const serviceSecondField = this.getService(serviceSecond, valute);
     const serviceFirstFieldNotValute = this.getService(serviceFirst);
     const serviceSecondFieldNotValute = this.getService(serviceSecond);
-    console.log(serviceFirstFieldNotValute, serviceSecondFieldNotValute);
+    console.log(serviceFirstField, serviceSecondField);
     try {
       items = await Weapon.find(
         {
           name: { $regex: textSearch, $options: "i" },
           $and: [{ $or: arrayTypeWeapon }, { $or: obj }],
-          [serviceFirstField]: { $gte: minPrice, $lte: maxPrice, $ne: 0 }
-        },
-      )
-        .limit(50000);
+          [serviceFirstField]: { $gte: minPrice, $lte: maxPrice, $ne: 0 },
+          [serviceSecondField]: { $gte: minPrice, $lte: maxPrice, $ne: 0 }
+        })
     } catch (err) {
       console.log(err);
     }
