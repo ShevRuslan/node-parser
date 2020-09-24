@@ -88,6 +88,21 @@ const weapon = new Schema(
       default: null,
       required: false,
     },
+    'price-csgotm-autobuy-CNY': {
+      type: Number,
+      default: null,
+      required: false,
+    },
+    'price-csgotm-autobuy-RUB': {
+      type: Number,
+      default: null,
+      required: false,
+    },
+    'price-csgotm-autobuy-USD': {
+      type: Number,
+      default: null,
+      required: false,
+    },
     'link': {
       type: String,
       required: false,

@@ -15,7 +15,40 @@ class Update {
     }
     const domens = config.domens;
     this.updatesBuff(domens['buff']);
+    this.updateAutobuyTM();
   };
+  updateAutobuyTM = async () => {
+    let timer = null;
+    try {
+      const response = await axios.get("https://market.csgo.com/api/v2/prices/class_instance/RUB.json");
+      const items = response.data.items;
+      console.log("START")
+      let i = 0;
+      for (let item in items) {
+        let weapon = items[item];
+        if (weapon.avg_price != null) {
+          i++;
+          const exsistItem = await Weapon.findOne({ name: weapon.market_hash_name });
+          if (exsistItem) {
+            exsistItem['price-csgotm-autobuy-RUB'] = parseFloat(weapon.buy_order);
+            exsistItem['price-csgotm-autobuy-CNY'] = (await this.changeValue(parseFloat(weapon.buy_order), "RUB", "CNY")).toFixed(3);
+            exsistItem['price-csgotm-autobuy-USD'] = (await this.changeValue(parseFloat(weapon.buy_order), "RUB", "USD")).toFixed(3);
+            try {
+             await exsistItem.save();
+            }
+            catch (err) {
+              console.log(err);
+            }
+          } 
+        }
+      }
+      console.log("END", i)
+    }
+    catch (err) {
+      console.log(err);
+    }
+    timer = setTimeout(() => this.updateAutobuyTM(), 1000 * 60 * 60 * 3);
+  }
   updatesTM = () => {
     const domens = config.domens['csgotm'];
     for (let domen of domens) {

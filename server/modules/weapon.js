@@ -71,6 +71,7 @@ module.exports = class {
       'buff.163 autobuy': 2.5,
       "steam min price": 13,
       "csgotm price": 7,
+      "csgotm autobuy": 7,
     }
     const commission = objСommission[serviceCommission];
     return 100 * (((value2 * (100 - commission) / 100) / value1) - 1);
@@ -86,6 +87,8 @@ module.exports = class {
           return `price-steam-${valute}`
         case 'csgotm price':
             return `price-csgotm-${valute}`
+        case 'csgotm autobuy':
+          return `price-csgotm-autobuy-${valute}`
       } 
     }
     else {
@@ -97,7 +100,9 @@ module.exports = class {
         case 'steam min price':
           return `price-steam-CNY`
         case 'csgotm price':
-            return `price-csgotm-CNY`
+          return `price-csgotm-CNY`
+        case "csgotm autobuy":
+          return `price-csgotm-autobuy-CNY`
       }
     }
   }
