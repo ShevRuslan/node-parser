@@ -1,7 +1,9 @@
 const Weapon = require("../models/weapons");
 const Currency = require('../currency.js');
 module.exports = class {
+  //Получение оружия по данным с фронта
   getWeapon = async (request, response) => {
+    //Получаем данные с запроса
     const {
       type,
       type_weapon,
@@ -13,14 +15,15 @@ module.exports = class {
       serviceSecond,
       offset = 0
     } = request.query;
-    const normallyTypeArray = JSON.parse(type);
 
+    const normallyTypeArray = JSON.parse(type);
     const normallyTypeWeaponArray = JSON.parse(type_weapon);
+    //Делаем массив типа оружия
     let arrayTypeWeapon = [];
     normallyTypeWeaponArray.forEach(item => {
       arrayTypeWeapon.push({ type: item.toLowerCase() });
     });
-
+    //Делаем массив дополнительного типа оружия
     let obj = [];
     if (normallyTypeArray.length == 0) {
       obj = [
@@ -35,12 +38,13 @@ module.exports = class {
     }
 
     let items = null;
-    const serviceFirstField = this.getService(serviceFirst, valute);
-    const serviceSecondField = this.getService(serviceSecond, valute);
-    const serviceFirstFieldNotValute = this.getService(serviceFirst);
-    const serviceSecondFieldNotValute = this.getService(serviceSecond);
+    const serviceFirstField = this.getService(serviceFirst, valute);//Получаем сервис по текущей валюте
+    const serviceSecondField = this.getService(serviceSecond, valute);//Получаем сервис по текущей валюте
+    const serviceFirstFieldNotValute = this.getService(serviceFirst);//Получаем сервис
+    const serviceSecondFieldNotValute = this.getService(serviceSecond);//Получаем сервис 
     console.log(serviceFirstField, serviceSecondField);
     try {
+      //Поиск в бд по данным
       items = await Weapon.find(
         {
           name: { $regex: textSearch, $options: "i" },
@@ -51,16 +55,17 @@ module.exports = class {
     } catch (err) {
       console.log(err);
     }
+    //Проход циклом всех айтемов, у каждого считаем процент и сортируем по проценту и берем оффсету.
     items.forEach(item => {
-      item['percent'] = this.getPercentage(item[serviceFirstFieldNotValute], item[serviceSecondFieldNotValute], serviceSecond).toFixed(2);;
+      item['percent'] = this.getPercentage(item[serviceFirstFieldNotValute], item[serviceSecondFieldNotValute], serviceSecond).toFixed(2);
       item['price-first'] = item[serviceFirstField];
       item['price-second'] = item[serviceSecondField];
     });
     items.sort((a, b) => (a.percent > b.percent) ? -1 : 1)
     const newItems = items.slice(parseInt(offset), parseInt(offset) + 100);
-    console.log(offset);
     response.status(200).json({ items: newItems });
   };
+  //Функция для получения значения по формуле для процента
   getPercentage(value1, value2, serviceCommission) {
     //x - цена сервиса 1
     //y - цена сервиса 2
@@ -76,6 +81,7 @@ module.exports = class {
     const commission = objСommission[serviceCommission];
     return 100 * (((value2 * (100 - commission) / 100) / value1) - 1);
   }
+  //Получение сервиса для бд по валюте (если она есть)
   getService(service, valute = null) {
     if (valute != null) {
       switch (service) {

@@ -151,10 +151,6 @@ export default {
       count: null
     };
   },
-  async created() {
-    const response = await Api.getCountItems();
-    this.count = response.count;
-  },
   computed: {
     // смешиваем результат mapGetters с внешним объектом computed
     ...mapGetters(["getFilter"]),

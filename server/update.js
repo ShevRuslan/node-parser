@@ -4,19 +4,32 @@ const config = require("./config/");
 const Currency = require("./currency.js");
 
 class Update {
+  //Кэш
   obj = {};
+  //Объект для валют
   objCurrency = {};
+  //Флаг для обновление ксготм
   updateTm = false;
+
   init = async currency => {
+    //Обновляем валюты
+    await this.updateCurrency(currency);
+    //Берем домены
+    const domens = config.domens;
+    //Запускаем обновление бафа
+    this.updatesBuff(domens['buff']);
+  };
+  //Функция для обновления валют
+  updateCurrency = async (currency) => {
     currency = new Currency();
     const hasCurrency = await currency.init();
     if (Object.keys(this.objCurrency).length === 0 && this.objCurrency.constructor === Object && hasCurrency) {
       this.objCurrency = currency.getCurrency();
     }
-    const domens = config.domens;
-    this.updatesBuff(domens['buff']);
-    this.updateAutobuyTM();
-  };
+    setTimeout(() => { this.updateCurrency() }, 1000 * 60 * 60);
+    return true;
+  }
+  //Функция для обновление автобая ксготм
   updateAutobuyTM = async () => {
     let timer = null;
     try {
@@ -49,6 +62,7 @@ class Update {
     }
     timer = setTimeout(() => this.updateAutobuyTM(), 1000 * 60 * 60 * 3);
   }
+  //Функция для обновление ксготм
   updatesTM = () => {
     const domens = config.domens['csgotm'];
     for (let domen of domens) {
@@ -56,6 +70,7 @@ class Update {
       this.updateTM(domen);
     }
   }
+  //Асинхронная функция для обновление бафа
   updatesBuff = async domens => {
     let currentIndex = 1;
     let countDomens = domens.length;
@@ -69,7 +84,7 @@ class Update {
     let timer = null;
     let response = null;
     try {
-      response = await axios.get(`http://${domen.link}/api/getWeapon/1`);
+      response = await axios.get(`http://${domen.link}`);
       let items = response.data.items;
   
   
@@ -165,7 +180,7 @@ class Update {
 
       itemsParePage = await response.data.pageItems;
       let count = await response.data.count;
-
+      //Фильтруем полученные айтемы для то поменялись ли они или новые
       let filteredItems = await items.filter(item => {
         let oldItemIndex = this.obj[domen.link].map[item.id];
         let oldItem = this.obj[domen.link].items[oldItemIndex];
@@ -178,7 +193,7 @@ class Update {
       });
 
       console.log(`Current link: ${currentLink}, PageLink: ${pageLink} PageItems:${itemsParePage}, Count: ${count}, Domen: ${domen.link}`);
-
+      //Циклоп проходим по тем айтемам, которые поменялись или же добавились - добавляем или редактируем в бд
       filteredItems.forEach(async item => {
         if (!this.obj[domen.link].map[item.id]) {
           this.obj[domen.link].map[item.id] = this.obj[domen.link].items.length;
@@ -248,6 +263,7 @@ class Update {
         if (currentIndex == countDomens && this.updateTm == false) {
           this.updateTm = true;
           this.updatesTM();
+          this.updateAutobuyTM();
         }
         sendRequest = false;
       }
@@ -258,7 +274,8 @@ class Update {
         currentLink = 1;
         if (currentIndex == countDomens && this.updateTm == false) {
           this.updateTm = true;
-          this.updatesTM();
+          this.updatesTM();    //Запускаем обновление автобая тм
+          this.updateAutobuyTM();
         }
         sendRequest = false;
       }
@@ -269,6 +286,7 @@ class Update {
     timer = setTimeout(() => this.updateBuff(domen), 0);
     return true;
   };
+  //Функция для смены валют
   changeValue = async (oldPrice, oldValute, newValute) => {
     const currencyValute = await this.objCurrency;
     if (oldValute == 'RUB') {
