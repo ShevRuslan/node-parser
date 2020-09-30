@@ -2,7 +2,6 @@ const Weapon = require("../models/weapons");
 const Currency = require('../currency.js');
 module.exports = class {
   getWeapon = async (request, response) => {
-    //Получение данных с фронта
     const {
       type,
       type_weapon,
@@ -36,13 +35,12 @@ module.exports = class {
     }
 
     let items = null;
-    const serviceFirstField = this.getService(serviceFirst, valute);//Получаем текущий сервис в бд по текущей валюте
-    const serviceSecondField = this.getService(serviceSecond, valute);//Получаем текущий сервис в бд по текущей валюте
-    const serviceFirstFieldNotValute = this.getService(serviceFirst);//Получаем текущий сервис в бд
-    const serviceSecondFieldNotValute = this.getService(serviceSecond);//Получаем текущий сервис в бд
+    const serviceFirstField = this.getService(serviceFirst, valute);
+    const serviceSecondField = this.getService(serviceSecond, valute);
+    const serviceFirstFieldNotValute = this.getService(serviceFirst);
+    const serviceSecondFieldNotValute = this.getService(serviceSecond);
     console.log(serviceFirstField, serviceSecondField);
     try {
-      //Ищем в бд
       items = await Weapon.find(
         {
           name: { $regex: textSearch, $options: "i" },
@@ -53,9 +51,8 @@ module.exports = class {
     } catch (err) {
       console.log(err);
     }
-    //Проходим циклом по всем оружиям, у каждого считаем процент относительно двух сервисов, сортируем и возвращаем самые выгодные по оффсету.
     items.forEach(item => {
-      item['percent'] = this.getPercentage(item[serviceFirstFieldNotValute], item[serviceSecondFieldNotValute], serviceSecond).toFixed(2);
+      item['percent'] = this.getPercentage(item[serviceFirstFieldNotValute], item[serviceSecondFieldNotValute], serviceSecond).toFixed(2);;
       item['price-first'] = item[serviceFirstField];
       item['price-second'] = item[serviceSecondField];
     });
@@ -64,7 +61,6 @@ module.exports = class {
     console.log(offset);
     response.status(200).json({ items: newItems });
   };
-  //Функция для получение процентов по двум значениям и сервисву
   getPercentage(value1, value2, serviceCommission) {
     //x - цена сервиса 1
     //y - цена сервиса 2
@@ -80,7 +76,6 @@ module.exports = class {
     const commission = objСommission[serviceCommission];
     return 100 * (((value2 * (100 - commission) / 100) / value1) - 1);
   }
-  //Получение название сервиса по бд
   getService(service, valute = null) {
     if (valute != null) {
       switch (service) {

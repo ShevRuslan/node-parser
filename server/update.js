@@ -8,21 +8,15 @@ class Update {
   objCurrency = {};
   updateTm = false;
   init = async currency => {
-    this.updateCurrency(currency);
-    const domens = config.domens;
-    this.updatesBuff(domens['buff']);
-    this.updateAutobuyTM();
-  };
-  //Функция для обновление валюты раз в 1 час
-  updateCurrency = async (currency) => {
     currency = new Currency();
     const hasCurrency = await currency.init();
     if (Object.keys(this.objCurrency).length === 0 && this.objCurrency.constructor === Object && hasCurrency) {
       this.objCurrency = currency.getCurrency();
     }
-    setTimeout(() => this.updateAutobuyTM(), 1000 * 60 * 60 * 1);
-  }
-  //Функция для обновление автобая ксготм
+    const domens = config.domens;
+    this.updatesBuff(domens['buff']);
+    this.updateAutobuyTM();
+  };
   updateAutobuyTM = async () => {
     let timer = null;
     try {
@@ -55,7 +49,6 @@ class Update {
     }
     timer = setTimeout(() => this.updateAutobuyTM(), 1000 * 60 * 60 * 3);
   }
-  //Функция для обновление всех доменов ксготм
   updatesTM = () => {
     const domens = config.domens['csgotm'];
     for (let domen of domens) {
@@ -63,7 +56,6 @@ class Update {
       this.updateTM(domen);
     }
   }
-  //Функция для обновление всех доменов бафа
   updatesBuff = async domens => {
     let currentIndex = 1;
     let countDomens = domens.length;
@@ -73,12 +65,11 @@ class Update {
       currentIndex++;
     }
   }
-  //Функция для обновление ксготм
   updateTM = async (domen) => {
     let timer = null;
     let response = null;
     try {
-      response = await axios.get(`http://${domen.link}`);
+      response = await axios.get(`http://${domen.link}/api/getWeapon/1`);
       let items = response.data.items;
   
   
@@ -113,7 +104,7 @@ class Update {
         this.obj[domen.link].map[item.market_hash_name] = index;
       })
       
-      //Фильтруем полученные айтемы по цене
+      
       let filteredItems = await items.filter(item => {
         let oldItemIndex = this.obj[domen.link].map[item.market_hash_name];//Берем индекс в массиве
         let oldItem = this.obj[domen.link].items[oldItemIndex]; //Берем сам айтем
@@ -149,7 +140,6 @@ class Update {
     
     timer = setTimeout(() => this.updateTM(domen), 0);
   }
-  //Обновление бафа
   updateBuff = async (domen, currentIndex, countDomens) => {
     let timer = null;
     clearTimeout(timer);
@@ -175,7 +165,7 @@ class Update {
 
       itemsParePage = await response.data.pageItems;
       let count = await response.data.count;
-      //Фильтруем полученные айтемы по цене (проверяем изменилась ли она)
+
       let filteredItems = await items.filter(item => {
         let oldItemIndex = this.obj[domen.link].map[item.id];
         let oldItem = this.obj[domen.link].items[oldItemIndex];
@@ -190,7 +180,6 @@ class Update {
       console.log(`Current link: ${currentLink}, PageLink: ${pageLink} PageItems:${itemsParePage}, Count: ${count}, Domen: ${domen.link}`);
 
       filteredItems.forEach(async item => {
-        //Если нет в кэше - создаем и пушим, если есть - меняем
         if (!this.obj[domen.link].map[item.id]) {
           this.obj[domen.link].map[item.id] = this.obj[domen.link].items.length;
           this.obj[domen.link].items.push(item);
@@ -208,7 +197,6 @@ class Update {
         if (arrayNameWeapon[0].split(" ")[0] == "Souvenir") {
           additional_type = "Souvenir";
         }
-        //Ищем айтем - если есть - меняем, если нет - создаем
         const exsistItem = await Weapon.findOne({ $or: [{ 'id': item.id }, { 'name': item.name }] });
         if (exsistItem) {
           exsistItem["price-buff-CNY"] = item.price;
@@ -231,7 +219,6 @@ class Update {
             console.log(err);
           }
         } else {
-          //Создаем новый айтем
           let newItem = new Weapon({
             id: item.id,
             name: item.name,
@@ -282,7 +269,6 @@ class Update {
     timer = setTimeout(() => this.updateBuff(domen), 0);
     return true;
   };
-  //Смена валюты
   changeValue = async (oldPrice, oldValute, newValute) => {
     const currencyValute = await this.objCurrency;
     if (oldValute == 'RUB') {
