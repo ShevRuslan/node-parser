@@ -8,15 +8,19 @@ class Update {
   objCurrency = {};
   updateTm = false;
   init = async currency => {
+    await this.updateCurrency();
+    const domens = config.domens;
+    this.updatesBuff(domens['buff']);
+    this.updateAutobuyTM();
+  };
+  updateCurrency = async (currency) => {
     currency = new Currency();
     const hasCurrency = await currency.init();
     if (Object.keys(this.objCurrency).length === 0 && this.objCurrency.constructor === Object && hasCurrency) {
       this.objCurrency = currency.getCurrency();
     }
-    const domens = config.domens;
-    this.updatesBuff(domens['buff']);
-    this.updateAutobuyTM();
-  };
+    setTimeout(() => this.updateCurrency(currency), 1000 * 60 * 60 * 1);
+  }
   updateAutobuyTM = async () => {
     let timer = null;
     try {
