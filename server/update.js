@@ -6,6 +6,7 @@ const Currency = require("./currency.js");
 class Update {
   obj = {};
   objCurrency = {};
+  timerTm = null;
   updateTm = false;
   init = async currency => {
     await this.updateCurrency();
@@ -14,6 +15,7 @@ class Update {
     this.updateAutobuyTM();
   };
   updateCurrency = async (currency) => {
+    console.log(`CURRENCY`);
     currency = new Currency();
     const hasCurrency = await currency.init();
     if (Object.keys(this.objCurrency).length === 0 && this.objCurrency.constructor === Object && hasCurrency) {
@@ -22,6 +24,7 @@ class Update {
     setTimeout(() => this.updateCurrency(currency), 1000 * 60 * 60 * 1);
   }
   updateAutobuyTM = async () => {
+    console.log(`AUTOBUY`);
     let timer = null;
     try {
       const response = await axios.get("https://market.csgo.com/api/v2/prices/class_instance/RUB.json");
@@ -70,10 +73,10 @@ class Update {
     }
   }
   updateTM = async (domen) => {
-    let timer = null;
+    this.timerTm = null;
     let response = null;
     try {
-      response = await axios.get(`http://${domen.link}/api/getWeapon/1`);
+      response = await axios.get(`http://${domen.link}`);
       let items = response.data.items;
   
   
@@ -117,32 +120,35 @@ class Update {
       });
   
       console.log(`----------------------------CSGOTM NEW ITEMS: ${filteredItems.length}`)
-      
-      filteredItems.forEach(async item => {
+      for await (let item of filteredItems) {
         if (!this.obj[domen.link].map[item.market_hash_name]) {
           this.obj[domen.link].map[item.market_hash_name] = this.obj[domen.link].items.length;
           this.obj[domen.link].items.push(item);
         } else {
           this.obj[domen.link].items[this.obj[domen.link].map[item.market_hash_name]] = item;
         }
-        const exsistItem = await Weapon.findOne({ name: item.market_hash_name });
-        if (exsistItem) {
-          exsistItem['price-csgotm-RUB'] = parseFloat(item.price);
-          exsistItem['price-csgotm-CNY'] = (await this.changeValue(parseFloat(item.price), "RUB", "CNY")).toFixed(3);
-          exsistItem['price-csgotm-USD'] = (await this.changeValue(parseFloat(item.price), "RUB", "USD")).toFixed(3);
-          try {
-           await exsistItem.save();
-          }
-          catch (err) {
-            console.log(err);
-          }
-        }
-      })
+        const res = await this.saveWeaponTM(item)
+      }
+      console.log(`END`);
     } catch (err) {
       console.log(err);
     }
     
-    timer = setTimeout(() => this.updateTM(domen), 0);
+    this.timerTm = setTimeout(() => this.updateTM(domen), 0);
+  }
+  saveWeaponTM = async (item) => {
+    const exsistItem = await Weapon.findOne({ name: item.market_hash_name });
+    if (exsistItem) {
+      exsistItem['price-csgotm-RUB'] = parseFloat(item.price);
+      exsistItem['price-csgotm-CNY'] = (await this.changeValue(parseFloat(item.price), "RUB", "CNY")).toFixed(3);
+      exsistItem['price-csgotm-USD'] = (await this.changeValue(parseFloat(item.price), "RUB", "USD")).toFixed(3);
+      try {
+       await exsistItem.save();
+      }
+      catch (err) {
+        console.log(err);
+      }
+    }
   }
   updateBuff = async (domen, currentIndex, countDomens) => {
     let timer = null;
