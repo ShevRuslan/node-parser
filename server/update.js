@@ -4,30 +4,23 @@ const config = require("./config/");
 const Currency = require("./currency.js");
 
 class Update {
-  //Кэш
   obj = {};
-  //Объект для валют
   objCurrency = {};
-  //Флаг для обновление ксготм
   updateTm = false;
-
   init = async currency => {
-    //Обновляем валюты
-    await this.updateCurrency(currency);
-    //Берем домены
+    this.updateCurrency(currency);
     const domens = config.domens;
-    //Запускаем обновление бафа
     this.updatesBuff(domens['buff']);
+    this.updateAutobuyTM();
   };
-  //Функция для обновления валют
+  //Функция для обновление валюты раз в 1 час
   updateCurrency = async (currency) => {
     currency = new Currency();
     const hasCurrency = await currency.init();
     if (Object.keys(this.objCurrency).length === 0 && this.objCurrency.constructor === Object && hasCurrency) {
       this.objCurrency = currency.getCurrency();
     }
-    setTimeout(() => { this.updateCurrency() }, 1000 * 60 * 60);
-    return true;
+    setTimeout(() => this.updateAutobuyTM(), 1000 * 60 * 60 * 1);
   }
   //Функция для обновление автобая ксготм
   updateAutobuyTM = async () => {
@@ -62,7 +55,7 @@ class Update {
     }
     timer = setTimeout(() => this.updateAutobuyTM(), 1000 * 60 * 60 * 3);
   }
-  //Функция для обновление ксготм
+  //Функция для обновление всех доменов ксготм
   updatesTM = () => {
     const domens = config.domens['csgotm'];
     for (let domen of domens) {
@@ -70,7 +63,7 @@ class Update {
       this.updateTM(domen);
     }
   }
-  //Асинхронная функция для обновление бафа
+  //Функция для обновление всех доменов бафа
   updatesBuff = async domens => {
     let currentIndex = 1;
     let countDomens = domens.length;
@@ -80,6 +73,7 @@ class Update {
       currentIndex++;
     }
   }
+  //Функция для обновление ксготм
   updateTM = async (domen) => {
     let timer = null;
     let response = null;
@@ -119,7 +113,7 @@ class Update {
         this.obj[domen.link].map[item.market_hash_name] = index;
       })
       
-      
+      //Фильтруем полученные айтемы по цене
       let filteredItems = await items.filter(item => {
         let oldItemIndex = this.obj[domen.link].map[item.market_hash_name];//Берем индекс в массиве
         let oldItem = this.obj[domen.link].items[oldItemIndex]; //Берем сам айтем
@@ -155,6 +149,7 @@ class Update {
     
     timer = setTimeout(() => this.updateTM(domen), 0);
   }
+  //Обновление бафа
   updateBuff = async (domen, currentIndex, countDomens) => {
     let timer = null;
     clearTimeout(timer);
@@ -180,7 +175,7 @@ class Update {
 
       itemsParePage = await response.data.pageItems;
       let count = await response.data.count;
-      //Фильтруем полученные айтемы для то поменялись ли они или новые
+      //Фильтруем полученные айтемы по цене (проверяем изменилась ли она)
       let filteredItems = await items.filter(item => {
         let oldItemIndex = this.obj[domen.link].map[item.id];
         let oldItem = this.obj[domen.link].items[oldItemIndex];
@@ -193,8 +188,9 @@ class Update {
       });
 
       console.log(`Current link: ${currentLink}, PageLink: ${pageLink} PageItems:${itemsParePage}, Count: ${count}, Domen: ${domen.link}`);
-      //Циклоп проходим по тем айтемам, которые поменялись или же добавились - добавляем или редактируем в бд
+
       filteredItems.forEach(async item => {
+        //Если нет в кэше - создаем и пушим, если есть - меняем
         if (!this.obj[domen.link].map[item.id]) {
           this.obj[domen.link].map[item.id] = this.obj[domen.link].items.length;
           this.obj[domen.link].items.push(item);
@@ -212,6 +208,7 @@ class Update {
         if (arrayNameWeapon[0].split(" ")[0] == "Souvenir") {
           additional_type = "Souvenir";
         }
+        //Ищем айтем - если есть - меняем, если нет - создаем
         const exsistItem = await Weapon.findOne({ $or: [{ 'id': item.id }, { 'name': item.name }] });
         if (exsistItem) {
           exsistItem["price-buff-CNY"] = item.price;
@@ -234,6 +231,7 @@ class Update {
             console.log(err);
           }
         } else {
+          //Создаем новый айтем
           let newItem = new Weapon({
             id: item.id,
             name: item.name,
@@ -263,7 +261,6 @@ class Update {
         if (currentIndex == countDomens && this.updateTm == false) {
           this.updateTm = true;
           this.updatesTM();
-          this.updateAutobuyTM();
         }
         sendRequest = false;
       }
@@ -274,8 +271,7 @@ class Update {
         currentLink = 1;
         if (currentIndex == countDomens && this.updateTm == false) {
           this.updateTm = true;
-          this.updatesTM();    //Запускаем обновление автобая тм
-          this.updateAutobuyTM();
+          this.updatesTM();
         }
         sendRequest = false;
       }
@@ -286,7 +282,7 @@ class Update {
     timer = setTimeout(() => this.updateBuff(domen), 0);
     return true;
   };
-  //Функция для смены валют
+  //Смена валюты
   changeValue = async (oldPrice, oldValute, newValute) => {
     const currencyValute = await this.objCurrency;
     if (oldValute == 'RUB') {
