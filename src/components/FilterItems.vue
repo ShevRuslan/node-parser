@@ -113,7 +113,7 @@
       <q-slider
         v-model="notifyPercent"
         :min="0"
-        :max="600"
+        :max="100"
         :step="1"
         label
         label-always
