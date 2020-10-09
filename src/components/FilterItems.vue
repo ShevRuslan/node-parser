@@ -54,10 +54,7 @@
         options-dense
       >
         <template v-slot:option="scope">
-          <q-item
-            v-bind="scope.itemProps"
-            v-on="scope.itemEvents"
-          >
+          <q-item v-bind="scope.itemProps" v-on="scope.itemEvents">
             <q-item-section avatar>
               <q-icon :name="scope.opt.icon" />
             </q-item-section>
@@ -112,6 +109,20 @@
         class="input-search"
       />
     </div>
+    <div class="flex notify-audio q-mt-lg">
+      <q-slider
+        v-model="notifyPercent"
+        :min="0"
+        :max="600"
+        :step="1"
+        label
+        label-always
+        color="primary"
+        class="filter-select q-mr-lg slider"
+        dense
+      />
+      <q-toggle label="Проигрывать" v-model="isAudio" />
+    </div>
   </div>
 </template>
 
@@ -126,7 +137,13 @@ export default {
     return {
       options: ["StatTrak", "Souvenir", "Normal"],
       typeWeapon: ["Knife", "Gloves", "Weapon"],
-      precentage: ["buff.163 min price", "buff.163 autobuy", "steam min price", 'csgotm price', 'csgotm autobuy'],
+      precentage: [
+        "buff.163 min price",
+        "buff.163 autobuy",
+        "steam min price",
+        "csgotm price",
+        "csgotm autobuy"
+      ],
       value: [
         {
           label: "USD",
@@ -147,13 +164,12 @@ export default {
           icon: "¥"
         }
       ],
-      // precentage: [{label: "buff.163 min price", check: true}, {label: "buff.163 autobuy", check: false}, {label: "steam min price", check: false}],
       count: null
     };
   },
   computed: {
     // смешиваем результат mapGetters с внешним объектом computed
-    ...mapGetters(["getFilter"]),
+    ...mapGetters(["getFilter", "getNotifyPercent", "getIsAudio"]),
     type: {
       get() {
         return this.getFilter.type;
@@ -225,6 +241,22 @@ export default {
       set(value) {
         this.changeValute(value);
       }
+    },
+    notifyPercent: {
+      get() {
+        return this.getNotifyPercent;
+      },
+      set(value) {
+        this.changePercentNotify(value);
+      }
+    },
+    isAudio: {
+      get() {
+        return this.getIsAudio;
+      },
+      set(payload) {
+        this.changeIsAudio(payload);
+      }
     }
   },
   methods: {
@@ -239,7 +271,9 @@ export default {
       "changeUpdateFilter",
       "changePrecentageFirst",
       "changePrecentageSecond",
-      "changeValute"
+      "changeValute",
+      "changePercentNotify",
+      "changeIsAudio"
     ]),
     ...mapActions(["addItemsAfterSearch"]),
     async searchByName(value) {
@@ -266,7 +300,7 @@ export default {
         precentageItems: this.precentageItemsmtype,
         valute: this.valute.value,
         precentageServiceFirst: this.precentageFirst,
-        precentageServiceSecond: this.precentageSecond,
+        precentageServiceSecond: this.precentageSecond
       });
       const data = {
         type: JSON.stringify(this.type),
@@ -301,6 +335,12 @@ export default {
     }
     .input-search {
       min-width: 250px;
+    }
+  }
+  .notify-audio {
+    align-items: center;
+    .slider {
+      width: 400px;
     }
   }
 }

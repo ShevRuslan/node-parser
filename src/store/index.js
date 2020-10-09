@@ -33,6 +33,8 @@ export default function(/* { ssrContext } */) {
         },
         textSearch:'',
       },
+      notifyPercent: 0,
+      isAudio: false,
       updateFilter: {
         
       },
@@ -51,6 +53,12 @@ export default function(/* { ssrContext } */) {
       },
       getLoading({loading}) {
         return loading
+      },
+      getNotifyPercent({ notifyPercent }) {
+        return notifyPercent;
+      },
+      getIsAudio({ isAudio }) {
+        return isAudio;
       }
     },
     //sync
@@ -60,7 +68,6 @@ export default function(/* { ssrContext } */) {
         else state.items = [...state.items, ...payload];
       },
       updateItems(state, { items, offset }) {
-        console.log(offset);
         let newArray = [];
         if (offset >= 100) {
           newArray = [
@@ -113,6 +120,12 @@ export default function(/* { ssrContext } */) {
       },
       changeValute(state, payload) {
         state.filter.valute = payload;
+      },
+      changePercentNotify(state, payload) {
+        state.notifyPercent = payload;
+      },
+      changeIsAudio(state, payload) {
+        state.isAudio = payload;
       }
     },
     //async

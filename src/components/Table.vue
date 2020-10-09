@@ -12,18 +12,18 @@
       separator="cell"
     >
       <template v-slot:body-cell-link="props">
-        <q-td :props="props" @click="copyToBoard(props.row.name)" style="cursor:pointer">
+        <q-td :props="props" @click="copyToBoard(props.row.name)" style="cursor:pointer" v-bind:class="{ 'bg-color': props.row['isColor'] }">
           <a :href="props.row.link" target="_blank">{{ props.row.name }}</a>
         </q-td>
       </template>
       <template v-slot:body-cell-price-first="props">
-        <q-td :props="props"> {{ props.row['price-first'] }} {{currencyChar}} </q-td>
+        <q-td :props="props" v-bind:class="{ 'bg-color': props.row['isColor'] }"> {{ props.row['price-first'] }} {{currencyChar}} </q-td>
       </template>
       <template v-slot:body-cell-price-second="props">
-        <q-td :props="props"> {{ props.row["price-second"] }} {{currencyChar}} </q-td>
+        <q-td :props="props" v-bind:class="{ 'bg-color': props.row['isColor'] }"> {{ props.row["price-second"] }} {{currencyChar}} </q-td>
       </template>
       <template v-slot:body-cell-percent="props">
-        <q-td :props="props">
+        <q-td :props="props" v-bind:class="{ 'bg-color': props.row['isColor'] }">
           {{ props.row["percent"] }} %
         </q-td>
       </template>
@@ -70,12 +70,13 @@ export default {
       pagination: {
         rowsPerPage: 0
       },
-      timerUpdate: null
+      timerUpdate: null,
+      audio: null,
     };
   },
   computed: {
     // смешиваем результат mapGetters с внешним объектом computed
-    ...mapGetters(["getItems", "getLoading", "getFilter", "getUpdateFilter"]),
+    ...mapGetters(["getItems", "getLoading", "getFilter", "getUpdateFilter", "getNotifyPercent", "getIsAudio"]),
     currencyChar() {
       let currencyChar = "¥";
       if(this.getUpdateFilter.valute == 'USD') currencyChar = "$";
@@ -84,6 +85,8 @@ export default {
     }
   },
   async created() {
+    this.audio = new Audio();
+    this.audio.src = "music.wav";
     const data = {
       type: JSON.stringify(this.getFilter.type),
       type_weapon: JSON.stringify(this.getFilter.type_weapon),
@@ -172,10 +175,21 @@ export default {
       return [...map.values()];
     },
     updateItems(newItems, offset) {
+      let isPrecent = false;
       let oldItems = [...this.getItems];
       newItems.forEach((item, index) => {
         if (this.getItems[offset + index] != undefined) {
-          oldItems[offset + index] = item
+          if(oldItems[offset + index].percent != item.percent) {
+            item.isColor = true;
+            console.log(oldItems[offset + index].percent, item.percent)
+          }
+          else {
+            item.isColor = false;
+          }
+          oldItems[offset + index] = item;
+          if(this.getNotifyPercent <= item.percent && isPrecent == false) isPrecent = true;
+
+          if(this.getIsAudio && isPrecent) this.audio.play();
         }
       });
       return oldItems;
@@ -216,4 +230,8 @@ export default {
 };
 </script>
 
-<style></style>
+<style lang="scss">
+  .bg-color {
+    background-color: #c1f4cd!important;
+  }
+</style>
