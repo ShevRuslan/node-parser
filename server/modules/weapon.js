@@ -39,7 +39,6 @@ module.exports = class {
     const serviceSecondField = this.getService(serviceSecond, valute);
     const serviceFirstFieldNotValute = this.getService(serviceFirst);
     const serviceSecondFieldNotValute = this.getService(serviceSecond);
-    console.log(serviceFirstField, serviceSecondField);
     try {
       items = await Weapon.find(
         {
@@ -58,7 +57,6 @@ module.exports = class {
     });
     items.sort((a, b) => (a.percent > b.percent) ? -1 : 1)
     const newItems = items.slice(parseInt(offset), parseInt(offset) + 100);
-    console.log(offset);
     response.status(200).json({ items: newItems });
   };
   getPercentage(value1, value2, serviceCommission) {

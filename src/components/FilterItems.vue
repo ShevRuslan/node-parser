@@ -279,7 +279,6 @@ export default {
     async searchByName(value) {
       this.changeOffset(0);
       const response = await this.request();
-      console.log(response.items);
       this.addItemsAfterSearch(response.items);
     },
     async search() {

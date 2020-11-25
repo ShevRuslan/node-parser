@@ -15,7 +15,6 @@ class Update {
     this.updateAutobuyTM();
   };
   updateCurrency = async (currency) => {
-    console.log(`CURRENCY`);
     currency = new Currency();
     const hasCurrency = await currency.init();
     if (Object.keys(this.objCurrency).length === 0 && this.objCurrency.constructor === Object && hasCurrency) {
@@ -24,12 +23,11 @@ class Update {
     setTimeout(() => this.updateCurrency(currency), 1000 * 60 * 60 * 1);
   }
   updateAutobuyTM = async () => {
-    console.log(`AUTOBUY`);
     let timer = null;
     try {
       const response = await axios.get("https://market.csgo.com/api/v2/prices/class_instance/RUB.json");
       const items = response.data.items;
-      console.log("START")
+
       let i = 0;
       for (let item in items) {
         let weapon = items[item];
@@ -49,7 +47,6 @@ class Update {
           } 
         }
       }
-      console.log("END", i)
     }
     catch (err) {
       console.log(err);
@@ -80,8 +77,6 @@ class Update {
       let items = response.data.items;
   
   
-      console.log(this.obj[domen.link].items.length, items.length);
-  
       //Элементы, которых нет в парсинге - их нужно соответственно удалять из кэша и менять цену в бд.
       const results = this.obj[domen.link].items.filter(({ 'market_hash_name': id1 }) => !items.some(({ 'market_hash_name': id2 }) => id2 === id1));
      //удаляем эти элементы и удаляем из бд
@@ -103,7 +98,6 @@ class Update {
           return true;
         }
      }));
-      console.log(this.obj[domen.link].items.length);
 
       this.obj[domen.link].map = {};
 
@@ -119,7 +113,6 @@ class Update {
         return (item.price !== oldItem.price); // если цены нет - добавляем
       });
   
-      console.log(`----------------------------CSGOTM NEW ITEMS: ${filteredItems.length}`)
       for await (let item of filteredItems) {
         if (!this.obj[domen.link].map[item.market_hash_name]) {
           this.obj[domen.link].map[item.market_hash_name] = this.obj[domen.link].items.length;
@@ -129,7 +122,6 @@ class Update {
         }
         const res = await this.saveWeaponTM(item)
       }
-      console.log(`END`);
     } catch (err) {
       console.log(err);
     }
@@ -165,7 +157,6 @@ class Update {
         if (currentPage == 1 && currentLink == 0) currentLink = 1;
         response = await axios.get(`http://${domen.link}/api/getWeapon/${currentPage}?currentLink=${currentLink}`);
       } catch (err) {
-        console.log(err);
         continue;
       }
 
@@ -187,7 +178,6 @@ class Update {
         );
       });
 
-      console.log(`Current link: ${currentLink}, PageLink: ${pageLink} PageItems:${itemsParePage}, Count: ${count}, Domen: ${domen.link}`);
 
       filteredItems.forEach(async item => {
         if (!this.obj[domen.link].map[item.id]) {

@@ -181,7 +181,6 @@ export default {
         if (this.getItems[offset + index] != undefined) {
           if(oldItems[offset + index].percent != item.percent) {
             item.isColor = true;
-            console.log(oldItems[offset + index].percent, item.percent)
           }
           else {
             item.isColor = false;
